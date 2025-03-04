@@ -1,10 +1,5 @@
 from pathlib import Path
-
-# from tkinter import *
-# Explicit imports to satisfy Flake8
-from tkinter import Tk, Canvas, Entry, Text, Button, PhotoImage
-from pathlib import Path
-from tkinter import Tk, Canvas, Entry, Text, Button, PhotoImage, filedialog
+from tkinter import Tk, Canvas, Entry, Button, PhotoImage, filedialog
 from PIL import Image, ImageTk
 
 OUTPUT_PATH = Path(__file__).parent
@@ -14,37 +9,64 @@ ASSETS_PATH = OUTPUT_PATH / Path(r"../app/assets/frame0")
 def relative_to_assets(path: str) -> Path:
     return ASSETS_PATH / Path(path)
 
-class PhotoViewer:
-    def __init__(self, master):
-        self.master = master
-        self.zoom_level = 100
-        self.current_index = -1
-        self.image_list = []
 
-        self.image_frame = Canvas(
-            master,
-            bg="#555555",
-            height=150,
-            width=350,
-            bd=0,
-            highlightthickness=0,
-            relief="ridge"
-        )
-        self.image_frame.place(x=600, y=350)
+class PhotoViewer:
+    def __init__(self, master, window_width=1321, window_height=700):
+        self.master = master
+        self.current_index = -1  # indeks aktualnie aktywnego obrazu (ostatnio dodanego)
+        self.image_list = []  # lista załadowanych obrazów
+
+        # Obliczamy wymiary obszaru (grid) dla canvases – ma on zajmować 5/6 okna
+        grid_width = int(window_width * 5 / 6)
+        grid_height = int(window_height * 5 / 6)
+        # Aby grid stykał się z prawym dolnym rogiem, jego lewy górny róg musi być:
+        grid_x0 = window_width - grid_width  # = window_width/6
+        grid_y0 = window_height - grid_height  # = window_height/6
+
+        # Każdy z 4 canvasów (ułożonych w 2x2) ma wymiary:
+        quad_w = grid_width // 2
+        quad_h = grid_height // 2
+
+        # Definicja pozycji poszczególnych canvasów:
+        self.quadrants = [
+            {"x": grid_x0, "y": grid_y0, "w": quad_w, "h": quad_h},  # górny lewy
+            {"x": grid_x0 + quad_w, "y": grid_y0, "w": quad_w, "h": quad_h},  # górny prawy
+            {"x": grid_x0, "y": grid_y0 + quad_h, "w": quad_w, "h": quad_h},  # dolny lewy
+            {"x": grid_x0 + quad_w, "y": grid_y0 + quad_h, "w": quad_w, "h": quad_h}  # dolny prawy
+        ]
+
+        # Utwórz canvasy dla każdej ćwiartki
+        self.image_frames = []
+        for quad in self.quadrants:
+            frame = Canvas(
+                master,
+                bg="#000000",
+                width=quad["w"],
+                height=quad["h"],
+                bd=0,
+                highlightthickness=0,
+                relief="ridge"
+            )
+            frame.place(x=quad["x"], y=quad["y"])
+            self.image_frames.append(frame)
 
     def open_image(self):
+        if len(self.image_list) >= 4:
+            print("Już załadowano 4 obrazy.")
+            return
         file_path = filedialog.askopenfilename(
-            title="Select Image", filetypes=(("PNG", "*.png"), ("JPEG", "*.jpg"))
+            title="Select Image",
+            filetypes=(("PNG", "*.png"), ("JPEG", "*.jpg"))
         )
         if file_path:
             try:
                 image = Image.open(file_path)
                 self.image_list.append(image)
                 self.current_index = len(self.image_list) - 1
-                print(f"Loaded image: {file_path}, size: {image.size}")  # Debugowanie
-                self.display_image()
+                print(f"Załadowano obraz: {file_path}, rozmiar: {image.size}")
+                self.display_image(self.current_index)
             except Exception as e:
-                print(f"Error loading image: {e}")
+                print(f"Błąd przy ładowaniu obrazu: {e}")
 
     def save_image(self):
         if self.current_index != -1:
@@ -60,12 +82,17 @@ class PhotoViewer:
         if self.current_index != -1:
             image = self.image_list[self.current_index]
             width, height = image.size
-            new_width = int(width * 1.1)
-            new_height = int(height * 1.1)
-            image = image.resize((new_width, new_height), Image.Resampling.LANCZOS
-)
+            quad = self.quadrants[self.current_index]
+            max_w, max_h = quad["w"], quad["h"]
+            scale = 1.1
+            # Ograniczenie powiększenia, aby obraz nie przekroczył obszaru
+            if width * scale > max_w or height * scale > max_h:
+                scale = min(max_w / width, max_h / height)
+            new_width = int(width * scale)
+            new_height = int(height * scale)
+            image = image.resize((new_width, new_height), Image.Resampling.LANCZOS)
             self.image_list[self.current_index] = image
-            self.display_image()
+            self.display_image(self.current_index)
 
     def zoom_out(self):
         if self.current_index != -1:
@@ -73,148 +100,106 @@ class PhotoViewer:
             width, height = image.size
             new_width = int(width / 1.1)
             new_height = int(height / 1.1)
-            image = image.resize((new_width, new_height), Image.Resampling.LANCZOS
-)
+            image = image.resize((new_width, new_height), Image.Resampling.LANCZOS)
             self.image_list[self.current_index] = image
-            self.display_image()
+            self.display_image(self.current_index)
 
-    def display_image(self):
-        if self.current_index != -1:
-            image = self.image_list[self.current_index]
+    def display_image(self, index):
+        if index < len(self.image_list):
+            image = self.image_list[index]
+            quad = self.quadrants[index]
+            max_w, max_h = quad["w"], quad["h"]
             width, height = image.size
+            # Jeśli obraz jest większy niż obszar canvasu, przeskaluj go
+            if width > max_w or height > max_h:
+                ratio = min(max_w / width, max_h / height)
+                new_width = int(width * ratio)
+                new_height = int(height * ratio)
+                display_image = image.resize((new_width, new_height), Image.Resampling.LANCZOS)
+            else:
+                display_image = image
+            photo = ImageTk.PhotoImage(display_image)
+            canvas_img = self.image_frames[index]
+            canvas_img.delete("all")
+            # Wyświetl obraz wycentrowany w canvasie (możesz zmienić anchor, jeśli potrzebujesz innego ustawienia)
+            canvas_img.create_image(max_w // 2, max_h // 2, image=photo, anchor="center")
+            canvas_img.image = photo  # przechowaj referencję
 
-            # Resize the image to 1/4 of its original size
-            new_width = width // 4
-            new_height = height // 4
-            resized_image = image.resize((new_width, new_height), Image.Resampling.LANCZOS
+    def display_all_images(self):
+        for i in range(len(self.image_list)):
+            self.display_image(i)
 
-)
 
-            # Create a PhotoImage from the resized image
-            photo = ImageTk.PhotoImage(resized_image)
-
-            # Clear the canvas and display the resized image
-            self.image_frame.delete("all")
-            self.image_frame.config(scrollregion=(0, 0, new_width, new_height))
-            self.image_frame.create_image(0, 0, image=photo, anchor="nw")
-
-            # Store a reference to the photo to prevent garbage collection
-            self.image_frame.image = photo
-
+# Główna część programu
 window = Tk()
-
 window.geometry("1321x700")
-window.configure(bg="#555555")
-viewer = PhotoViewer(window)
+window.configure(bg="#000000")
 
+# Główny canvas – tło (np. obraz background)
 canvas = Canvas(
     window,
-    bg="#555555",
+    bg="#000000",
     height=700,
     width=1321,
     bd=0,
     highlightthickness=0,
     relief="ridge"
 )
-
 canvas.place(x=0, y=0)
-image_image_1 = PhotoImage(
-    file=relative_to_assets("image_1.png"))
-image_1 = canvas.create_image(
-    660.0,
-    350.0,
-    image=image_image_1
-)
 
-entry_image_1 = PhotoImage(
-    file=relative_to_assets("entry_1.png"))
-entry_bg_1 = canvas.create_image(
-    1059.2923889160156,
-    51.51327133178711,
-    image=entry_image_1
-)
+image_image_1 = PhotoImage(file=relative_to_assets("image_1.png"))
+canvas.create_image(660, 350, image=image_image_1)
+
+entry_image_1 = PhotoImage(file=relative_to_assets("entry_1.png"))
 entry_1 = Entry(
     bd=0,
     bg="#717171",
     fg="#FFFFFF",
     highlightthickness=0
 )
-entry_1.place(
-    x=906.778564453125,
-    y=7.0,
-    width=305.02764892578125,
-    height=87.02654266357422
-)
+entry_1.place(x=906, y=7, width=305, height=87)
 
-canvas.create_text(
-    18.0,
-    100.0,
-    anchor="nw",
-    text="Szukaj",
-    fill="#FFFFFF",
-    font=("Inter Bold", 18 * -1)
-)
+canvas.create_text(18, 100, anchor="nw", text="Szukaj", fill="#FFFFFF", font=("Inter Bold", -18))
 
-# Update buttons with correct properties
-button_image_1 = PhotoImage(
-    file=relative_to_assets("button_1.png"))
+# Utwórz instancję PhotoViewer – canvasy z obrazami zostaną utworzone w obszarze 5/6 okna, z wyrównaniem do prawego dolnego rogu
+viewer = PhotoViewer(window)
+
+# Przykładowe przyciski – możesz dostosować pozycje według własnych potrzeb
+button_image_1 = PhotoImage(file=relative_to_assets("button_1.png"))
 button_1 = Button(
     image=button_image_1,
     borderwidth=0,
-    highlightthickness=200,  # Set highlight thickness to 200
-    highlightbackground="#555555",  # Correct property for highlight background
-    activebackground="#555555",  # Ensure the color remains consistent on hover
+    highlightthickness=200,
+    highlightbackground="#555555",
+    activebackground="#555555",
     command=viewer.zoom_in,
     relief="flat"
 )
-button_1.place(
-    x=322.0149230957031,
-    y=33.01190185546875,
-    width=30.484512329101562,
-    height=32.30758285522461
-)
+button_1.place(x=322, y=33, width=30, height=32)
 
-entry_image_2 = PhotoImage(
-    file=relative_to_assets("entry_2.png"))
-entry_bg_2 = canvas.create_image(
-    143.5,
-    113.0,
-    image=entry_image_2
-)
+entry_image_2 = PhotoImage(file=relative_to_assets("entry_2.png"))
+canvas.create_image(143, 113, image=entry_image_2)
 entry_2 = Entry(
     bd=0,
     bg="#6C6C6C",
     fg="#FFFFFF",
     highlightthickness=0
 )
-entry_2.place(
-    x=82.0,
-    y=103.0,
-    width=123.0,
-    height=18.0
-)
+entry_2.place(x=82, y=103, width=123, height=18)
 
-# Repeat for other buttons
-button_image_2 = PhotoImage(
-    file=relative_to_assets("button_2.png"))
+button_image_2 = PhotoImage(file=relative_to_assets("button_2.png"))
 button_2 = Button(
     image=button_image_2,
     borderwidth=0,
     highlightthickness=200,
-    highlightbackground="#555555",  # Correct property
+    highlightbackground="#555555",
     activebackground="#555555",
     command=viewer.open_image,
     relief="flat"
 )
-button_2.place(
-    x=244.87094116210938,
-    y=32.9481201171875,
-    width=33.086151123046875,
-    height=35.052635192871094
-)
+button_2.place(x=244, y=32, width=33, height=35)
 
-button_image_3 = PhotoImage(
-    file=relative_to_assets("button_3.png"))
+button_image_3 = PhotoImage(file=relative_to_assets("button_3.png"))
 button_3 = Button(
     image=button_image_3,
     borderwidth=0,
@@ -224,15 +209,9 @@ button_3 = Button(
     command=lambda: print("linie"),
     relief="flat"
 )
-button_3.place(
-    x=456.0598449707031,
-    y=32.390228271484375,
-    width=33.086151123046875,
-    height=35.052635192871094
-)
+button_3.place(x=456, y=32, width=33, height=35)
 
-button_image_4 = PhotoImage(
-    file=relative_to_assets("button_4.png"))
+button_image_4 = PhotoImage(file=relative_to_assets("button_4.png"))
 button_4 = Button(
     image=button_image_4,
     borderwidth=0,
@@ -242,15 +221,9 @@ button_4 = Button(
     command=viewer.save_image,
     relief="flat"
 )
-button_4.place(
-    x=359.0745849609375,
-    y=33.6453857421875,
-    width=29.289043426513672,
-    height=31.040620803833008
-)
+button_4.place(x=359, y=33, width=29, height=31)
 
-button_image_5 = PhotoImage(
-    file=relative_to_assets("button_5.png"))
+button_image_5 = PhotoImage(file=relative_to_assets("button_5.png"))
 button_5 = Button(
     image=button_image_5,
     borderwidth=0,
@@ -260,15 +233,9 @@ button_5 = Button(
     command=lambda: print("łapka"),
     relief="flat"
 )
-button_5.place(
-    x=286.1911315917969,
-    y=33.467437744140625,
-    width=30.222583770751953,
-    height=31.602924346923828
-)
+button_5.place(x=286, y=33, width=30, height=31)
 
-button_image_6 = PhotoImage(
-    file=relative_to_assets("button_6.png"))
+button_image_6 = PhotoImage(file=relative_to_assets("button_6.png"))
 button_6 = Button(
     image=button_image_6,
     borderwidth=0,
@@ -278,15 +245,9 @@ button_6 = Button(
     command=lambda: print("heatmap"),
     relief="flat"
 )
-button_6.place(
-    x=413.9458312988281,
-    y=32.25079345703125,
-    width=34.90947723388672,
-    height=36.62346649169922
-)
+button_6.place(x=413, y=32, width=34, height=36)
 
-button_image_7 = PhotoImage(
-    file=relative_to_assets("button_7.png"))
+button_image_7 = PhotoImage(file=relative_to_assets("button_7.png"))
 button_7 = Button(
     image=button_image_7,
     borderwidth=0,
@@ -296,12 +257,7 @@ button_7 = Button(
     command=lambda: print("info"),
     relief="flat"
 )
-button_7.place(
-    x=1240.4642333984375,
-    y=42.0,
-    width=22.323211669921875,
-    height=23.649993896484375
-)
+button_7.place(x=1240, y=42, width=22, height=23)
 
 window.resizable(False, False)
 window.mainloop()
