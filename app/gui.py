@@ -246,6 +246,28 @@ button_6 = Button(
     relief="flat"
 )
 button_6.place(x=413, y=32, width=34, height=36)
+import tkinter as tk
+
+def show_popup():
+    popup = tk.Toplevel(window)
+    popup.geometry("300x90+950+80")
+    popup.resizable(False, False)
+
+    popup.overrideredirect(True)
+
+    border_frame = tk.Frame(popup, bg="white", padx=2, pady=2)
+    border_frame.pack(expand=True, fill="both")
+
+    content_frame = tk.Frame(border_frame, bg="#555555")
+    content_frame.pack(expand=True, fill="both")
+
+    info_label = tk.Label(content_frame, text="informacje jszcze do uzupelnienia",
+                          bg="#555555", fg="white", font=("Arial", 10))
+    info_label.pack(expand=True)
+
+    close_button = tk.Button(content_frame, text="Zamknij", command=popup.destroy)
+    close_button.pack(pady=5)
+
 
 button_image_7 = PhotoImage(file=relative_to_assets("button_7.png"))
 button_7 = Button(
@@ -254,7 +276,7 @@ button_7 = Button(
     highlightthickness=200,
     highlightbackground="#555555",
     activebackground="#555555",
-    command=lambda: print("info"),
+    command= show_popup,
     relief="flat"
 )
 button_7.place(x=1240, y=42, width=22, height=23)
