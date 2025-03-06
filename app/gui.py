@@ -46,6 +46,7 @@ button_1 = Button(
     highlightthickness=200,
     highlightbackground="#555555",
     activebackground="#555555",
+    bg="#555555",
     command=viewer.zoom_in,
     relief="flat"
 )
@@ -73,6 +74,9 @@ button_2 = Button(
     image=button_image_2,
     borderwidth=0,
     highlightthickness=200,
+    highlightbackground="#555555",
+    activebackground="#555555",
+    bg="#555555",
     command=show_menu,
     relief="flat"
 )
@@ -89,6 +93,7 @@ button_3 = Button(
     highlightthickness=200,
     highlightbackground="#555555",
     activebackground="#555555",
+    bg="#555555",
     command=lambda: print("linie"),
     relief="flat"
 )
@@ -101,6 +106,7 @@ button_4 = Button(
     highlightthickness=200,
     highlightbackground="#555555",
     activebackground="#555555",
+    bg="#555555",
     command=viewer.save_image,
     relief="flat"
 )
@@ -113,6 +119,7 @@ button_5 = Button(
     highlightthickness=200,
     highlightbackground="#555555",
     activebackground="#555555",
+    bg="#555555",
     command=lambda: print("łapka"),
     relief="flat"
 )
@@ -125,6 +132,7 @@ button_6 = Button(
     highlightthickness=200,
     highlightbackground="#555555",
     activebackground="#555555",
+    bg="#555555",
     command=lambda: print("heatmap"),
     relief="flat"
 )
@@ -158,6 +166,7 @@ button_7 = Button(
     highlightthickness=200,
     highlightbackground="#555555",
     activebackground="#555555",
+    bg="#555555",
     command= show_popup,
     relief="flat"
 )
