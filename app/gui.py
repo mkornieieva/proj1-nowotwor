@@ -1,17 +1,17 @@
 from pathlib import Path
-from main import PhotoViewer
+from app import main_panel
+from main_panel import PhotoViewer
 from tkinter import Tk, Canvas, Entry, Button, PhotoImage, filedialog
 from PIL import Image, ImageTk
 from config import ASSETS_PATH, OUTPUT_PATH
-
-
-def relative_to_assets(path: str) -> Path:
-    return ASSETS_PATH / Path(path)
+import tkinter as tk
+from config import relative_to_assets
 
 
 window = Tk()
 window.geometry("1321x700")
 window.configure(bg="#000000")
+viewer = PhotoViewer(window)
 
 canvas = Canvas(
     window,
@@ -38,8 +38,6 @@ entry_1.place(x=906, y=7, width=305, height=87)
 
 canvas.create_text(18, 100, anchor="nw", text="Szukaj", fill="#FFFFFF", font=("Inter Bold", -18))
 
-viewer = PhotoViewer(window)
-
 button_image_1 = PhotoImage(file=relative_to_assets("button_1.png"))
 button_1 = Button(
     image=button_image_1,
@@ -62,17 +60,26 @@ entry_2 = Entry(
 )
 entry_2.place(x=82, y=103, width=123, height=18)
 
+def show_menu():
+    x = button_2.winfo_rootx()
+    y = button_2.winfo_rooty() + button_2.winfo_height()
+    menu.post(x, y)
+
 button_image_2 = PhotoImage(file=relative_to_assets("button_2.png"))
+
 button_2 = Button(
+    window,
     image=button_image_2,
     borderwidth=0,
     highlightthickness=200,
-    highlightbackground="#555555",
-    activebackground="#555555",
-    command=viewer.open_image,
+    command=show_menu,
     relief="flat"
 )
 button_2.place(x=244, y=32, width=33, height=35)
+
+menu = tk.Menu(window, tearoff=0)
+menu.add_command(label="Importuj plik", command=lambda: print("opcja1"))
+menu.add_command(label="Importuj folder", command=lambda: print("opcja2"))
 
 button_image_3 = PhotoImage(file=relative_to_assets("button_3.png"))
 button_3 = Button(
@@ -121,14 +128,13 @@ button_6 = Button(
     relief="flat"
 )
 button_6.place(x=413, y=32, width=34, height=36)
-import tkinter as tk
 
 def show_popup():
     popup = tk.Toplevel(window)
     popup.geometry("300x90+950+80")
     popup.resizable(False, False)
 
-    popup.overrideredirect(True)
+    popup.overrideredirect(False)
 
     border_frame = tk.Frame(popup, bg="white", padx=2, pady=2)
     border_frame.pack(expand=True, fill="both")
@@ -155,6 +161,7 @@ button_7 = Button(
     relief="flat"
 )
 button_7.place(x=1240, y=42, width=22, height=23)
+
 
 window.resizable(False, False)
 window.mainloop()

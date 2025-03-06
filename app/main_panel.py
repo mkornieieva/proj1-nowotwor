@@ -1,6 +1,6 @@
 from tkinter import Canvas, filedialog
 from PIL import Image, ImageTk
-import tkinter as tk
+
 
 class PhotoViewer:
     def __init__(self, master, window_width=1321, window_height=700):
