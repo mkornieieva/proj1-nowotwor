@@ -1,5 +1,6 @@
 from pathlib import Path
 from app import main_panel
+import os
 from main_panel import PhotoViewer
 from tkinter import Tk, Canvas, Entry, Button, PhotoImage, filedialog
 from PIL import Image, ImageTk
@@ -161,6 +162,22 @@ button_7 = Button(
     relief="flat"
 )
 button_7.place(x=1240, y=42, width=22, height=23)
+
+file_explorer_frame = tk.Frame(window, bg="#333333")
+file_explorer_frame.place(x=10, y=130, width=195, height=560)
+nametag = tk.Label(file_explorer_frame, text="Lista skanów", bg="#555555", fg="white")
+nametag.pack(pady=5, fill="x")
+
+folder_label = tk.Label(file_explorer_frame, text="Foldery:", bg="#333333", fg="white")
+folder_label.pack(pady=(10, 0))
+folder_list_frame = tk.Frame(file_explorer_frame, bg="#444444")
+folder_list_frame.pack(pady=5, fill="x")
+
+file_label = tk.Label(file_explorer_frame, text="Pliki:", bg="#333333", fg="white")
+file_label.pack(pady=(10, 0))
+file_list_frame = tk.Frame(file_explorer_frame, bg="#444444")
+file_list_frame.pack(pady=5, fill="both", expand=True)
+
 
 
 window.resizable(False, False)

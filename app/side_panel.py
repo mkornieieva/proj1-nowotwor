@@ -1,20 +1,9 @@
+import os
 import tkinter as tk
-
-file_explorer_frame = tk.Frame(window, bg="#333333")
-file_explorer_frame.place(x=10, y=130, width=200, height=560)
-folder_select_button = Button(file_explorer_frame, text="Wybierz folder", bg="#555555", fg="white",
-                              command=lambda: choose_folder())
-folder_select_button.pack(pady=5, fill="x")
-
-folder_label = tk.Label(file_explorer_frame, text="Foldery:", bg="#333333", fg="white")
-folder_label.pack(pady=(10, 0))
-folder_list_frame = tk.Frame(file_explorer_frame, bg="#444444")
-folder_list_frame.pack(pady=5, fill="x")
-
-file_label = tk.Label(file_explorer_frame, text="Pliki:", bg="#333333", fg="white")
-file_label.pack(pady=(10, 0))
-file_list_frame = tk.Frame(file_explorer_frame, bg="#444444")
-file_list_frame.pack(pady=5, fill="both", expand=True)
+from tkinter import filedialog
+from tkinter import Tk, Canvas, Entry, Button, PhotoImage, filedialog
+from PIL import Image, ImageTk
+from app.gui import folder_list_frame, file_list_frame, window
 
 def choose_folder():
     folder_path = filedialog.askdirectory(title="Wybierz folder")
@@ -96,4 +85,4 @@ def display_file_in_main_area(file_path):
     photo = ImageTk.PhotoImage(img)
     main_display_canvas.delete("all")
     main_display_canvas.create_image(canvas_width//2, canvas_height//2, image=photo, anchor="center")
-    main_display_canvas.image = photo.
+    main_display_canvas.image = photo
