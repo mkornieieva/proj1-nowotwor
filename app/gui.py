@@ -1,12 +1,12 @@
-from pathlib import Path
-from app import main_panel
-import os
+from app.side_panel import choose_folder
 from main_panel import PhotoViewer
 from tkinter import Tk, Canvas, Entry, Button, PhotoImage, filedialog
 from PIL import Image, ImageTk
 from config import ASSETS_PATH, OUTPUT_PATH
 import tkinter as tk
 from config import relative_to_assets
+import side_panel
+
 
 
 window = Tk()
@@ -83,8 +83,8 @@ button_2 = Button(
 button_2.place(x=244, y=32, width=33, height=35)
 
 menu = tk.Menu(window, tearoff=0)
-menu.add_command(label="Importuj plik", command=lambda: print("opcja1"))
-menu.add_command(label="Importuj folder", command=lambda: print("opcja2"))
+menu.add_command(label="Importuj plik", command=lambda: viewer.open_image())
+menu.add_command(label="Importuj folder", command=lambda: choose_folder(folder_list_frame, file_list_frame))
 
 button_image_3 = PhotoImage(file=relative_to_assets("button_3.png"))
 button_3 = Button(
