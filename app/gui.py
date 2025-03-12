@@ -201,18 +201,17 @@ file_label.pack(pady=(10, 0))
 file_list_canvas = tk.Canvas(file_explorer_frame, bg="#444444", borderwidth=0, highlightthickness=0)
 file_list_canvas.pack(side=tk.LEFT, fill="both", expand=True)
 
-# Dodajemy pionowy scrollbar
-scrollbar = tk.Scrollbar(file_explorer_frame, orient="vertical", command=file_list_canvas.yview)
+
+scrollbar = tk.Scrollbar(file_explorer_frame, orient=tk.VERTICAL, command=file_list_canvas.yview)
 scrollbar.pack(side=tk.RIGHT, fill="y")
 
-# Konfigurujemy canvas, aby korzystał ze scrollbara
-file_list_canvas.configure(yscrollcommand=scrollbar.set)
 
-# Tworzymy ramkę, która będzie zawierać miniaturki, i umieszczamy ją w canvasie
+file_list_canvas.configure(yscrollcommand=scrollbar.set)
+file_list_canvas.bind('<Configure>', lambda e: file_list_canvas.configure(scrollregion=file_list_canvas.bbox("all")))
+
 file_list_frame = tk.Frame(file_list_canvas, bg="#444444")
 file_list_canvas.create_window((0, 0), window=file_list_frame, anchor="nw")
 
-# Aktualizacja obszaru scrolla, gdy zmienia się rozmiar ramki
 def on_frame_configure(event):
     file_list_canvas.configure(scrollregion=file_list_canvas.bbox("all"))
 
