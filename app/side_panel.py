@@ -7,12 +7,11 @@ from config import relative_to_assets
 grid_slots = [None, None, None, None]
 displayed_images = {}
 
-def choose_folder(folder, file, window):
+def choose_folder(folder, file, window, image_frames):
     folder_path = filedialog.askdirectory(title="Wybierz folder")
     if folder_path:
+        # Czyścimy tylko zawartość kontenera folderów (nie kasujemy miniatur już zaimportowanych)
         for widget in folder.winfo_children():
-            widget.destroy()
-        for widget in file.winfo_children():
             widget.destroy()
         try:
             entries = os.listdir(folder_path)
@@ -21,7 +20,7 @@ def choose_folder(folder, file, window):
             return
 
         def on_folder_click(path):
-            list_files_in_folder(path, file, window)
+            list_files_in_folder(path, file, window, image_frames)
 
         base_button = Button(folder, text=os.path.basename(folder_path) or folder_path,
                              bg="#555555", fg="white",
@@ -34,9 +33,7 @@ def choose_folder(folder, file, window):
                          command=lambda p=sub_path: on_folder_click(p))
             btn.pack(fill="x", padx=5, pady=2)
 
-def list_files_in_folder(folder_path, file, window):
-    for widget in file.winfo_children():
-        widget.destroy()
+def list_files_in_folder(folder_path, file, window, image_frames):
     try:
         entries = os.listdir(folder_path)
     except Exception as e:
@@ -47,10 +44,12 @@ def list_files_in_folder(folder_path, file, window):
                    os.path.isfile(os.path.join(folder_path, f))]
     for file_name in image_files:
         full_path = os.path.join(folder_path, file_name)
-        # Tworzymy ramkę analogiczną do add_image_to_side_panel
         frame = tk.Frame(file, bg="#555555")
         frame.pack(pady=2, fill="x")
-        frame.file_name = file_name  # zapamiętujemy nazwę pliku do wyszukiwania
+        frame.file_name = file_name
+
+        # Dodajemy ramkę do globalnej listy przekazanej z gui
+        image_frames.append(frame)
 
         try:
             img = Image.open(full_path)
