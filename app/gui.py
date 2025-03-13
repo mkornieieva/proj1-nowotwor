@@ -5,7 +5,7 @@ from PIL import Image, ImageTk
 from config import ASSETS_PATH, OUTPUT_PATH, relative_to_assets
 from app.side_panel import choose_folder  # Funkcja z modułu side_panel
 import side_panel
-from main_panel import PhotoViewer
+
 
 # Globalna lista przechowująca wszystkie ramki miniatur
 all_image_frames = []
@@ -13,7 +13,7 @@ all_image_frames = []
 window = Tk()
 window.geometry("1321x700")
 window.configure(bg="#000000")
-viewer = PhotoViewer(window)
+
 
 canvas = Canvas(window, bg="#000000", height=700, width=1321, bd=0, highlightthickness=0, relief="ridge")
 canvas.place(x=0, y=0)
@@ -30,7 +30,7 @@ canvas.create_text(18, 100, anchor="nw", text="Szukaj", fill="#FFFFFF", font=("I
 button_image_1 = PhotoImage(file=relative_to_assets("button_1.png"))
 button_1 = Button(window, image=button_image_1, borderwidth=0, highlightthickness=200,
                   highlightbackground="#555555", activebackground="#555555", bg="#555555",
-                  command=viewer.zoom_in, relief="flat")
+                  command=lambda e:"zoom", relief="flat")
 button_1.place(x=322, y=33, width=30, height=32)
 
 entry_image_2 = PhotoImage(file=relative_to_assets("entry_2.png"))
@@ -76,7 +76,7 @@ button_3.place(x=456, y=32, width=33, height=35)
 button_image_4 = PhotoImage(file=relative_to_assets("button_4.png"))
 button_4 = Button(window, image=button_image_4, borderwidth=0, highlightthickness=200,
                   highlightbackground="#555555", activebackground="#555555", bg="#555555",
-                  command=viewer.save_image, relief="flat")
+                  command=lambda e:"save", relief="flat")
 button_4.place(x=359, y=33, width=29, height=31)
 
 button_image_5 = PhotoImage(file=relative_to_assets("button_5.png"))
