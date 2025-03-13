@@ -1,11 +1,35 @@
 import os
 import tkinter as tk
-from tkinter import filedialog, Button
+from tkinter import Button, filedialog
 from PIL import Image, ImageTk
 from config import relative_to_assets
 
+all_image_frames = []
 grid_slots = [None, None, None, None]
 displayed_images = {}
+
+def toggle_image_display(filepath, window, eye_btn=None):
+    from main_panel import open_image_in_main_panel, remove_image
+    if filepath not in displayed_images:
+        frame = open_image_in_main_panel(filepath, window)
+        if frame is not None:
+            displayed_images[filepath] = frame
+            if eye_btn is not None:
+                new_icon = Image.open(relative_to_assets("eye-crossed.png"))
+                new_icon = new_icon.resize((20, 20), Image.Resampling.LANCZOS)
+                new_icon = ImageTk.PhotoImage(new_icon)
+                eye_btn.config(image=new_icon)
+                eye_btn.image = new_icon
+    else:
+        frame = displayed_images[filepath]
+        remove_image(frame)
+        del displayed_images[filepath]
+        if eye_btn is not None:
+            new_icon = Image.open(relative_to_assets("eye.png"))
+            new_icon = new_icon.resize((20, 20), Image.Resampling.LANCZOS)
+            new_icon = ImageTk.PhotoImage(new_icon)
+            eye_btn.config(image=new_icon)
+            eye_btn.image = new_icon
 
 def choose_folder(folder, file, window, image_frames):
     folder_path = filedialog.askdirectory(title="Wybierz folder")
@@ -39,8 +63,7 @@ def list_files_in_folder(folder_path, file, window, image_frames):
         print(f"Błąd przy odczycie folderu: {e}")
         return
     image_extensions = ('.png', '.jpg', '.jpeg', '.gif')
-    image_files = [f for f in entries if f.lower().endswith(image_extensions) and
-                   os.path.isfile(os.path.join(folder_path, f))]
+    image_files = [f for f in entries if f.lower().endswith(image_extensions) and os.path.isfile(os.path.join(folder_path, f))]
     for file_name in image_files:
         full_path = os.path.join(folder_path, file_name)
         frame = tk.Frame(file, bg="#555555")
@@ -77,52 +100,3 @@ def list_files_in_folder(folder_path, file, window, image_frames):
         frame.bind("<Button-1>", lambda e, path=full_path, btn=eye_btn: toggle_image_display(path, window, btn))
         label.bind("<Button-1>", lambda e, path=full_path, btn=eye_btn: toggle_image_display(path, window, btn))
         text.bind("<Button-1>", lambda e, path=full_path, btn=eye_btn: toggle_image_display(path, window, btn))
-
-def open_image_in_main_panel(filepath, window):
-    for i in range(4):
-        if grid_slots[i] is None:
-            try:
-                image = Image.open(filepath)
-                image.thumbnail((300, 300))
-                img = ImageTk.PhotoImage(image)
-            except Exception as e:
-                print(f"Błąd przy otwieraniu obrazu: {e}")
-                return None
-            row = i // 2
-            col = i % 2
-            frame = tk.Frame(window, bg="#000000")
-            frame.place(x=320 + col * 520, y=110 + row * 300, width=300, height=300)
-            label = tk.Label(frame, image=img, bg="#000000")
-            label.image = img  # zachowujemy referencję
-            label.pack()
-            frame.slot_index = i
-            grid_slots[i] = frame
-            return frame
-    return None
-
-def remove_image(frame):
-    idx = frame.slot_index
-    frame.destroy()
-    grid_slots[idx] = None
-
-def toggle_image_display(filepath, window, eye_btn=None):
-    if filepath not in displayed_images:
-        frame = open_image_in_main_panel(filepath, window)
-        if frame is not None:
-            displayed_images[filepath] = frame
-            if eye_btn is not None:
-                new_icon = Image.open(relative_to_assets("eye-crossed.png"))
-                new_icon = new_icon.resize((20, 20), Image.Resampling.LANCZOS)
-                new_icon = ImageTk.PhotoImage(new_icon)
-                eye_btn.config(image=new_icon)
-                eye_btn.image = new_icon
-    else:
-        frame = displayed_images[filepath]
-        remove_image(frame)
-        del displayed_images[filepath]
-        if eye_btn is not None:
-            new_icon = Image.open(relative_to_assets("eye.png"))
-            new_icon = new_icon.resize((20, 20), Image.Resampling.LANCZOS)
-            new_icon = ImageTk.PhotoImage(new_icon)
-            eye_btn.config(image=new_icon)
-            eye_btn.image = new_icon
