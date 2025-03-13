@@ -3,7 +3,7 @@ import tkinter as tk
 from tkinter import Tk, Canvas, Entry, Button, PhotoImage, filedialog
 from PIL import Image, ImageTk
 from config import ASSETS_PATH, OUTPUT_PATH, relative_to_assets
-from app.side_panel import choose_folder
+from app.side_panel import choose_folder  # funkcja z modułu side_panel
 import side_panel
 from main_panel import PhotoViewer
 
@@ -61,21 +61,16 @@ entry_2 = Entry(
 entry_2.place(x=82, y=103, width=123, height=18)
 
 
-# Funkcja wyszukiwania po dodanych plikach
+# Funkcja wyszukiwania po dodanych plikach (teraz iteruje po widgetach w scrollowalnej ramce)
 def search_files(event=None):
     query = entry_2.get().lower()
-    # Iterujemy po wszystkich ramkach z plikami w panelu
-    for widget in file_list_canvas.winfo_children():
-        # Sprawdzamy, czy ramka posiada atrybut file_name
+    for widget in file_list_frame.winfo_children():
         if hasattr(widget, "file_name"):
-            # Jeśli zapytanie znajduje się w nazwie pliku – pokaż, w przeciwnym razie ukryj
             if query in widget.file_name.lower():
                 widget.pack_configure(pady=2, fill="x")
             else:
                 widget.pack_forget()
 
-
-# Bind wyszukiwania przy wpisywaniu w entry2
 entry_2.bind("<KeyRelease>", search_files)
 
 
@@ -83,7 +78,6 @@ def show_menu():
     x = button_2.winfo_rootx()
     y = button_2.winfo_rooty() + button_2.winfo_height()
     menu.post(x, y)
-
 
 button_image_2 = PhotoImage(file=relative_to_assets("button_2.png"))
 button_2 = Button(
@@ -100,8 +94,9 @@ button_2 = Button(
 button_2.place(x=244, y=32, width=33, height=35)
 
 menu = tk.Menu(window, tearoff=0)
+# Przekazujemy scrollowalną ramkę jako kontener dla miniatur
 menu.add_command(label="Importuj plik", command=lambda: import_file())
-menu.add_command(label="Importuj folder", command=lambda: choose_folder(folder_list_frame, file_list_canvas, window))
+menu.add_command(label="Importuj folder", command=lambda: choose_folder(folder_list_frame, file_list_frame, window))
 
 button_image_3 = PhotoImage(file=relative_to_assets("button_3.png"))
 button_3 = Button(
@@ -166,11 +161,10 @@ def show_popup():
     content_frame = tk.Frame(border_frame, bg="#555555")
     content_frame.pack(expand=True, fill="both")
     info_label = tk.Label(content_frame, text="informacje jszcze do uzupelnienia",
-                          bg="#555555", fg="white", font=("Arial", 10))
+                           bg="#555555", fg="white", font=("Arial", 10))
     info_label.pack(expand=True)
     close_button = tk.Button(content_frame, text="Zamknij", command=popup.destroy)
     close_button.pack(pady=5)
-
 
 button_image_7 = PhotoImage(file=relative_to_assets("button_7.png"))
 button_7 = Button(
@@ -185,6 +179,7 @@ button_7 = Button(
 )
 button_7.place(x=1240, y=42, width=22, height=23)
 
+# ========== PANEL BOCZNY (Sidebar) ==========
 file_explorer_frame = tk.Frame(window, bg="#333333")
 file_explorer_frame.place(x=10, y=130, width=195, height=560)
 nametag = tk.Label(file_explorer_frame, text="Lista skanów", bg="#555555", fg="white")
@@ -198,30 +193,36 @@ folder_list_frame.pack(pady=5, fill="x")
 file_label = tk.Label(file_explorer_frame, text="Pliki:", bg="#333333", fg="white")
 file_label.pack(pady=(10, 0))
 
+# Tworzymy canvas i scrollbar
 file_list_canvas = tk.Canvas(file_explorer_frame, bg="#444444", borderwidth=0, highlightthickness=0)
 file_list_canvas.pack(side=tk.LEFT, fill="both", expand=True)
 
-
 scrollbar = tk.Scrollbar(file_explorer_frame, orient=tk.VERTICAL, command=file_list_canvas.yview)
 scrollbar.pack(side=tk.RIGHT, fill="y")
-
-
 file_list_canvas.configure(yscrollcommand=scrollbar.set)
-file_list_canvas.bind('<Configure>', lambda e: file_list_canvas.configure(scrollregion=file_list_canvas.bbox("all")))
 
+# Scrollowalna ramka wewnątrz canvasu
 file_list_frame = tk.Frame(file_list_canvas, bg="#444444")
-file_list_canvas.create_window((0, 0), window=file_list_frame, anchor="nw")
+canvas_window = file_list_canvas.create_window((0, 0), window=file_list_frame, anchor="nw")
 
 def on_frame_configure(event):
     file_list_canvas.configure(scrollregion=file_list_canvas.bbox("all"))
-
 file_list_frame.bind("<Configure>", on_frame_configure)
+
+def on_canvas_configure(event):
+    file_list_canvas.itemconfig(canvas_window, width=event.width)
+file_list_canvas.bind("<Configure>", on_canvas_configure)
+
+# Binding dla kółka myszy
+def _on_mousewheel(event):
+    file_list_canvas.yview_scroll(int(-1*(event.delta/120)), "units")
+file_list_canvas.bind("<Enter>", lambda e: file_list_canvas.bind_all("<MouseWheel>", _on_mousewheel))
+file_list_canvas.bind("<Leave>", lambda e: file_list_canvas.unbind_all("<MouseWheel>"))
 
 def add_image_to_side_panel(filepath):
     filename = os.path.basename(filepath)
     max_length = 10
     display_name = filename if len(filename) <= max_length else filename[:max_length] + "..."
-
     try:
         image = Image.open(filepath)
         image.thumbnail((50, 50))
@@ -230,10 +231,10 @@ def add_image_to_side_panel(filepath):
         print(f"Błąd przy tworzeniu miniaturki: {e}")
         return
 
-    # Tworzymy ramkę dla pliku i zapisujemy nazwę pliku jako atrybut
-    frame = tk.Frame(file_list_canvas, bg="#555555")
+    # Dodajemy widget do scrollowalnej ramki
+    frame = tk.Frame(file_list_frame, bg="#555555")
     frame.pack(pady=2, fill="x")
-    frame.file_name = filename  # zapisujemy pełną nazwę pliku, aby wyszukiwanie było pełniejsze
+    frame.file_name = filename
 
     label = tk.Label(frame, image=thumbnail, bg="#555555")
     label.image = thumbnail
@@ -247,17 +248,15 @@ def add_image_to_side_panel(filepath):
     eye_icon = ImageTk.PhotoImage(eye_icon)
     eye_btn = tk.Button(frame, image=eye_icon, bg="#555555", borderwidth=0,
                         command=lambda: side_panel.toggle_image_display(filepath, window, eye_btn))
-    eye_btn.image = eye_icon  # Zachowujemy referencję
+    eye_btn.image = eye_icon
     eye_btn.pack(side="right", padx=5)
 
     frame.bind("<Button-1>", lambda e, path=filepath: side_panel.toggle_image_display(path, window, eye_btn))
-
 
 def import_file():
     filepath = filedialog.askopenfilename(filetypes=[("Image files", ".jpg;.png;*.jpeg")])
     if filepath:
         add_image_to_side_panel(filepath)
-
 
 window.resizable(False, False)
 window.mainloop()
