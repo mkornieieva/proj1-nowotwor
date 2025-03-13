@@ -181,7 +181,7 @@ def add_image_to_side_panel(filepath):
     frame.bind("<Button-1>", lambda e, path=filepath: side_panel.toggle_image_display(path, window, eye_btn))
 
 def import_file():
-    filepath = filedialog.askopenfilename(filetypes=[("Image files", ".jpg;.png;*.jpeg")])
+    filepath = filedialog.askopenfilename(filetypes=[("Image files", "*.jpg;*.png;*.jpeg")])
     if filepath:
         add_image_to_side_panel(filepath)
 
