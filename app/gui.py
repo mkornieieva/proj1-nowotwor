@@ -2,14 +2,12 @@ import os
 import tkinter as tk
 from tkinter import Tk, Canvas, Entry, Button, PhotoImage, filedialog
 from PIL import Image, ImageTk
-from config import ASSETS_PATH, OUTPUT_PATH, relative_to_assets
-from app.side_panel import choose_folder  # Funkcja z modułu side_panel
+from config import relative_to_assets
+from app.side_panel import choose_folder
 import side_panel
 
 
-# Globalna lista przechowująca wszystkie ramki miniatur
 all_image_frames = []
-
 window = Tk()
 window.geometry("1321x700")
 window.configure(bg="#000000")
@@ -38,12 +36,11 @@ canvas.create_image(143, 113, image=entry_image_2)
 entry_2 = Entry(window, bd=0, bg="#6C6C6C", fg="#FFFFFF", highlightthickness=0)
 entry_2.place(x=82, y=103, width=123, height=18)
 
-# Funkcja wyszukiwania iterująca po globalnej liście
+
 def search_files(event=None):
     query = entry_2.get().lower()
     global all_image_frames
     for widget in all_image_frames:
-        # Jeśli nazwa pasuje, zapakuj widget; w przeciwnym razie ukryj go
         if query in widget.file_name.lower():
             widget.pack(pady=2, fill="x")
         else:
@@ -63,7 +60,6 @@ button_2 = Button(window, image=button_image_2, borderwidth=0, highlightthicknes
 button_2.place(x=244, y=32, width=33, height=35)
 
 menu = tk.Menu(window, tearoff=0)
-# Przekazujemy jako argument referencję do folderów oraz do listy miniatur (file_list_frame oraz all_image_frames)
 menu.add_command(label="Importuj plik", command=lambda: import_file())
 menu.add_command(label="Importuj folder", command=lambda: choose_folder(folder_list_frame, file_list_frame, window, all_image_frames))
 
@@ -111,7 +107,7 @@ button_7 = Button(window, image=button_image_7, borderwidth=0, highlightthicknes
                   command=show_popup, relief="flat")
 button_7.place(x=1240, y=42, width=22, height=23)
 
-# ================= PANEL BOCZNY (Sidebar) =================
+
 file_explorer_frame = tk.Frame(window, bg="#333333")
 file_explorer_frame.place(x=10, y=130, width=195, height=560)
 nametag = tk.Label(file_explorer_frame, text="Lista skanów", bg="#555555", fg="white")
@@ -133,7 +129,6 @@ scrollbar = tk.Scrollbar(file_explorer_frame, orient=tk.VERTICAL, command=file_l
 scrollbar.pack(side=tk.RIGHT, fill="y")
 file_list_canvas.configure(yscrollcommand=scrollbar.set)
 
-# Scrollowalna ramka wewnątrz canvasu
 file_list_frame = tk.Frame(file_list_canvas, bg="#444444")
 canvas_window = file_list_canvas.create_window((0, 0), window=file_list_frame, anchor="nw")
 
@@ -145,7 +140,6 @@ def on_canvas_configure(event):
     file_list_canvas.itemconfig(canvas_window, width=event.width)
 file_list_canvas.bind("<Configure>", on_canvas_configure)
 
-# Binding dla kółka myszy
 def _on_mousewheel(event):
     file_list_canvas.yview_scroll(int(-1*(event.delta/120)), "units")
 file_list_canvas.bind("<Enter>", lambda e: file_list_canvas.bind_all("<MouseWheel>", _on_mousewheel))
@@ -163,7 +157,6 @@ def add_image_to_side_panel(filepath):
         print(f"Błąd przy tworzeniu miniaturki: {e}")
         return
 
-    # Dodajemy widget do scrollowalnej ramki
     frame = tk.Frame(file_list_frame, bg="#555555")
     frame.pack(pady=2, fill="x")
     frame.file_name = filename

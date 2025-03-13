@@ -10,7 +10,6 @@ displayed_images = {}
 def choose_folder(folder, file, window, image_frames):
     folder_path = filedialog.askdirectory(title="Wybierz folder")
     if folder_path:
-        # Czyścimy tylko zawartość kontenera folderów (nie kasujemy miniatur już zaimportowanych)
         for widget in folder.winfo_children():
             widget.destroy()
         try:
@@ -48,7 +47,6 @@ def list_files_in_folder(folder_path, file, window, image_frames):
         frame.pack(pady=2, fill="x")
         frame.file_name = file_name
 
-        # Dodajemy ramkę do globalnej listy przekazanej z gui
         image_frames.append(frame)
 
         try:
