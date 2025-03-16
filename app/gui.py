@@ -1,307 +1,190 @@
-from pathlib import Path
-
-# from tkinter import *
-# Explicit imports to satisfy Flake8
-from tkinter import Tk, Canvas, Entry, Text, Button, PhotoImage
-from pathlib import Path
-from tkinter import Tk, Canvas, Entry, Text, Button, PhotoImage, filedialog
+import os
+import tkinter as tk
+from tkinter import Tk, Canvas, Entry, Button, PhotoImage, filedialog
 from PIL import Image, ImageTk
-
-OUTPUT_PATH = Path(__file__).parent
-ASSETS_PATH = OUTPUT_PATH / Path(r"../app/assets/frame0")
-
-
-def relative_to_assets(path: str) -> Path:
-    return ASSETS_PATH / Path(path)
-
-class PhotoViewer:
-    def __init__(self, master):
-        self.master = master
-        self.zoom_level = 100
-        self.current_index = -1
-        self.image_list = []
-
-        self.image_frame = Canvas(
-            master,
-            bg="#555555",
-            height=150,
-            width=350,
-            bd=0,
-            highlightthickness=0,
-            relief="ridge"
-        )
-        self.image_frame.place(x=600, y=350)
-
-    def open_image(self):
-        file_path = filedialog.askopenfilename(
-            title="Select Image", filetypes=(("PNG", "*.png"), ("JPEG", "*.jpg"))
-        )
-        if file_path:
-            try:
-                image = Image.open(file_path)
-                self.image_list.append(image)
-                self.current_index = len(self.image_list) - 1
-                print(f"Loaded image: {file_path}, size: {image.size}")  # Debugowanie
-                self.display_image()
-            except Exception as e:
-                print(f"Error loading image: {e}")
-
-    def save_image(self):
-        if self.current_index != -1:
-            file_path = filedialog.asksaveasfilename(
-                title="Save Image",
-                filetypes=[("JPEG Image", "*.jpg"), ("PNG Image", "*.png")],
-                defaultextension=".png",
-            )
-            if file_path:
-                self.image_list[self.current_index].save(file_path)
-
-    def zoom_in(self):
-        if self.current_index != -1:
-            image = self.image_list[self.current_index]
-            width, height = image.size
-            new_width = int(width * 1.1)
-            new_height = int(height * 1.1)
-            image = image.resize((new_width, new_height), Image.Resampling.LANCZOS
-)
-            self.image_list[self.current_index] = image
-            self.display_image()
-
-    def zoom_out(self):
-        if self.current_index != -1:
-            image = self.image_list[self.current_index]
-            width, height = image.size
-            new_width = int(width / 1.1)
-            new_height = int(height / 1.1)
-            image = image.resize((new_width, new_height), Image.Resampling.LANCZOS
-)
-            self.image_list[self.current_index] = image
-            self.display_image()
-
-    def display_image(self):
-        if self.current_index != -1:
-            image = self.image_list[self.current_index]
-            width, height = image.size
-
-            # Resize the image to 1/4 of its original size
-            new_width = width // 4
-            new_height = height // 4
-            resized_image = image.resize((new_width, new_height), Image.Resampling.LANCZOS
-
-)
-
-            # Create a PhotoImage from the resized image
-            photo = ImageTk.PhotoImage(resized_image)
-
-            # Clear the canvas and display the resized image
-            self.image_frame.delete("all")
-            self.image_frame.config(scrollregion=(0, 0, new_width, new_height))
-            self.image_frame.create_image(0, 0, image=photo, anchor="nw")
-
-            # Store a reference to the photo to prevent garbage collection
-            self.image_frame.image = photo
+from config import relative_to_assets
+import side_panel
+from main_panel import zoom_image, drag, select_main_frame
+from app.export_to_pdf import export_main_panel_to_pdf
 
 window = Tk()
-
 window.geometry("1321x700")
-window.configure(bg="#555555")
-viewer = PhotoViewer(window)
+window.configure(bg="#000000")
 
-canvas = Canvas(
-    window,
-    bg="#555555",
-    height=700,
-    width=1321,
-    bd=0,
-    highlightthickness=0,
-    relief="ridge"
-)
 
+canvas = Canvas(window, bg="#000000", height=700, width=1321, bd=0, highlightthickness=0, relief="ridge")
 canvas.place(x=0, y=0)
-image_image_1 = PhotoImage(
-    file=relative_to_assets("image_1.png"))
-image_1 = canvas.create_image(
-    660.0,
-    350.0,
-    image=image_image_1
-)
 
-entry_image_1 = PhotoImage(
-    file=relative_to_assets("entry_1.png"))
-entry_bg_1 = canvas.create_image(
-    1059.2923889160156,
-    51.51327133178711,
-    image=entry_image_1
-)
-entry_1 = Entry(
-    bd=0,
-    bg="#717171",
-    fg="#FFFFFF",
-    highlightthickness=0
-)
-entry_1.place(
-    x=906.778564453125,
-    y=7.0,
-    width=305.02764892578125,
-    height=87.02654266357422
-)
 
-canvas.create_text(
-    18.0,
-    100.0,
-    anchor="nw",
-    text="Szukaj",
-    fill="#FFFFFF",
-    font=("Inter Bold", 18 * -1)
-)
+image_image_1 = PhotoImage(file=relative_to_assets("image_1.png"))
+canvas.create_image(660, 350, image=image_image_1)
 
-# Update buttons with correct properties
-button_image_1 = PhotoImage(
-    file=relative_to_assets("button_1.png"))
-button_1 = Button(
-    image=button_image_1,
-    borderwidth=0,
-    highlightthickness=200,  # Set highlight thickness to 200
-    highlightbackground="#555555",  # Correct property for highlight background
-    activebackground="#555555",  # Ensure the color remains consistent on hover
-    command=viewer.zoom_in,
-    relief="flat"
-)
-button_1.place(
-    x=322.0149230957031,
-    y=33.01190185546875,
-    width=30.484512329101562,
-    height=32.30758285522461
-)
+entry_image_1 = PhotoImage(file=relative_to_assets("entry_1.png"))
+entry_1 = Entry(window, bd=0, bg="#717171", fg="#FFFFFF", highlightthickness=0)
+entry_1.place(x=906, y=7, width=305, height=87)
 
-entry_image_2 = PhotoImage(
-    file=relative_to_assets("entry_2.png"))
-entry_bg_2 = canvas.create_image(
-    143.5,
-    113.0,
-    image=entry_image_2
-)
-entry_2 = Entry(
-    bd=0,
-    bg="#6C6C6C",
-    fg="#FFFFFF",
-    highlightthickness=0
-)
-entry_2.place(
-    x=82.0,
-    y=103.0,
-    width=123.0,
-    height=18.0
-)
+canvas.create_text(18, 100, anchor="nw", text="Szukaj", fill="#FFFFFF", font=("Inter Bold", -18))
 
-# Repeat for other buttons
-button_image_2 = PhotoImage(
-    file=relative_to_assets("button_2.png"))
-button_2 = Button(
-    image=button_image_2,
-    borderwidth=0,
-    highlightthickness=200,
-    highlightbackground="#555555",  # Correct property
-    activebackground="#555555",
-    command=viewer.open_image,
-    relief="flat"
-)
-button_2.place(
-    x=244.87094116210938,
-    y=32.9481201171875,
-    width=33.086151123046875,
-    height=35.052635192871094
-)
 
-button_image_3 = PhotoImage(
-    file=relative_to_assets("button_3.png"))
-button_3 = Button(
-    image=button_image_3,
-    borderwidth=0,
-    highlightthickness=200,
-    highlightbackground="#555555",
-    activebackground="#555555",
-    command=lambda: print("linie"),
-    relief="flat"
-)
-button_3.place(
-    x=456.0598449707031,
-    y=32.390228271484375,
-    width=33.086151123046875,
-    height=35.052635192871094
-)
+button_image_1 = PhotoImage(file=relative_to_assets("button_1.png"))
+button_1 = Button(window, image=button_image_1, borderwidth=0, highlightthickness=200,
+                  highlightbackground="#555555", activebackground="#555555", bg="#555555",
+                  command=zoom_image, relief="flat")
+button_1.place(x=322, y=33, width=30, height=32)
 
-button_image_4 = PhotoImage(
-    file=relative_to_assets("button_4.png"))
-button_4 = Button(
-    image=button_image_4,
-    borderwidth=0,
-    highlightthickness=200,
-    highlightbackground="#555555",
-    activebackground="#555555",
-    command=viewer.save_image,
-    relief="flat"
-)
-button_4.place(
-    x=359.0745849609375,
-    y=33.6453857421875,
-    width=29.289043426513672,
-    height=31.040620803833008
-)
+entry_image_2 = PhotoImage(file=relative_to_assets("entry_2.png"))
+canvas.create_image(143, 113, image=entry_image_2)
+entry_2 = Entry(window, bd=0, bg="#6C6C6C", fg="#FFFFFF", highlightthickness=0)
+entry_2.place(x=82, y=103, width=123, height=18)
 
-button_image_5 = PhotoImage(
-    file=relative_to_assets("button_5.png"))
-button_5 = Button(
-    image=button_image_5,
-    borderwidth=0,
-    highlightthickness=200,
-    highlightbackground="#555555",
-    activebackground="#555555",
-    command=lambda: print("łapka"),
-    relief="flat"
-)
-button_5.place(
-    x=286.1911315917969,
-    y=33.467437744140625,
-    width=30.222583770751953,
-    height=31.602924346923828
-)
+def search_files(event=None):
+    query = entry_2.get().lower()
+    for widget in side_panel.all_image_frames:
+        if query in widget.file_name.lower():
+            widget.pack(pady=2, fill="x")
+        else:
+            widget.pack_forget()
 
-button_image_6 = PhotoImage(
-    file=relative_to_assets("button_6.png"))
-button_6 = Button(
-    image=button_image_6,
-    borderwidth=0,
-    highlightthickness=200,
-    highlightbackground="#555555",
-    activebackground="#555555",
-    command=lambda: print("heatmap"),
-    relief="flat"
-)
-button_6.place(
-    x=413.9458312988281,
-    y=32.25079345703125,
-    width=34.90947723388672,
-    height=36.62346649169922
-)
+entry_2.bind("<KeyRelease>", search_files)
 
-button_image_7 = PhotoImage(
-    file=relative_to_assets("button_7.png"))
-button_7 = Button(
-    image=button_image_7,
-    borderwidth=0,
-    highlightthickness=200,
-    highlightbackground="#555555",
-    activebackground="#555555",
-    command=lambda: print("info"),
-    relief="flat"
-)
-button_7.place(
-    x=1240.4642333984375,
-    y=42.0,
-    width=22.323211669921875,
-    height=23.649993896484375
-)
+def show_menu():
+    x = button_2.winfo_rootx()
+    y = button_2.winfo_rooty() + button_2.winfo_height()
+    menu.post(x, y)
+
+button_image_2 = PhotoImage(file=relative_to_assets("button_2.png"))
+button_2 = Button(window, image=button_image_2, borderwidth=0, highlightthickness=200,
+                  highlightbackground="#555555", activebackground="#555555", bg="#555555",
+                  command=show_menu, relief="flat")
+button_2.place(x=244, y=32, width=33, height=35)
+
+menu = tk.Menu(window, tearoff=0)
+menu.add_command(label="Importuj plik", command=lambda: import_file())
+menu.add_command(label="Importuj folder", command=lambda: side_panel.choose_folder(folder_list_frame, file_list_frame, window, side_panel.all_image_frames))
+
+button_image_3 = PhotoImage(file=relative_to_assets("button_3.png"))
+button_3 = Button(window, image=button_image_3, borderwidth=0, highlightthickness=200,
+                  highlightbackground="#555555", activebackground="#555555", bg="#555555",
+                  command=lambda: print("linie"), relief="flat")
+button_3.place(x=456, y=32, width=33, height=35)
+
+button_image_4 = PhotoImage(file=relative_to_assets("button_4.png"))
+button_4 = Button(window, image=button_image_4, borderwidth=0, highlightthickness=200,
+                  highlightbackground="#555555", activebackground="#555555", bg="#555555",
+                  command=lambda: export_main_panel_to_pdf(window), relief="flat")
+button_4.place(x=359, y=33, width=29, height=31)
+
+button_image_5 = PhotoImage(file=relative_to_assets("button_5.png"))
+button_5 = Button(window, image=button_image_5, borderwidth=0, highlightthickness=200,
+                  highlightbackground="#555555", activebackground="#555555", bg="#555555",
+                  command=drag, relief="flat")
+button_5.place(x=286, y=33, width=30, height=31)
+
+button_image_6 = PhotoImage(file=relative_to_assets("button_6.png"))
+button_6 = Button(window, image=button_image_6, borderwidth=0, highlightthickness=200,
+                  highlightbackground="#555555", activebackground="#555555", bg="#555555",
+                  command=lambda: print("heatmap"), relief="flat")
+button_6.place(x=413, y=32, width=34, height=36)
+
+def show_popup():
+    popup = tk.Toplevel(window)
+    popup.geometry("300x90+950+80")
+    popup.resizable(False, False)
+    popup.overrideredirect(False)
+    border_frame = tk.Frame(popup, bg="white", padx=2, pady=2)
+    border_frame.pack(expand=True, fill="both")
+    content_frame = tk.Frame(border_frame, bg="#555555")
+    content_frame.pack(expand=True, fill="both")
+    info_label = tk.Label(content_frame, text="informacje jeszcze do uzupełnienia", bg="#555555", fg="white", font=("Arial", 10))
+    info_label.pack(expand=True)
+    close_button = tk.Button(content_frame, text="Zamknij", command=popup.destroy)
+    close_button.pack(pady=5)
+
+button_image_7 = PhotoImage(file=relative_to_assets("button_7.png"))
+button_7 = Button(window, image=button_image_7, borderwidth=0, highlightthickness=200,
+                  highlightbackground="#555555", activebackground="#555555", bg="#555555",
+                  command=show_popup, relief="flat")
+button_7.place(x=1240, y=42, width=22, height=23)
+
+
+file_explorer_frame = tk.Frame(window, bg="#333333")
+file_explorer_frame.place(x=10, y=130, width=195, height=560)
+nametag = tk.Label(file_explorer_frame, text="Lista skanów", bg="#555555", fg="white")
+nametag.pack(pady=5, fill="x")
+
+folder_label = tk.Label(file_explorer_frame, text="Foldery:", bg="#333333", fg="white")
+folder_label.pack(pady=(10, 0))
+folder_list_frame = tk.Frame(file_explorer_frame, bg="#444444")
+folder_list_frame.pack(pady=5, fill="x")
+
+file_label = tk.Label(file_explorer_frame, text="Pliki:", bg="#333333", fg="white")
+file_label.pack(pady=(10, 0))
+
+
+file_list_canvas = tk.Canvas(file_explorer_frame, bg="#444444", borderwidth=0, highlightthickness=0)
+file_list_canvas.pack(side=tk.LEFT, fill="both", expand=True)
+
+scrollbar = tk.Scrollbar(file_explorer_frame, orient=tk.VERTICAL, command=file_list_canvas.yview)
+scrollbar.pack(side=tk.RIGHT, fill="y")
+file_list_canvas.configure(yscrollcommand=scrollbar.set)
+
+file_list_frame = tk.Frame(file_list_canvas, bg="#444444")
+canvas_window = file_list_canvas.create_window((0, 0), window=file_list_frame, anchor="nw")
+
+def on_frame_configure(event):
+    file_list_canvas.configure(scrollregion=file_list_canvas.bbox("all"))
+file_list_frame.bind("<Configure>", on_frame_configure)
+
+def on_canvas_configure(event):
+    file_list_canvas.itemconfig(canvas_window, width=event.width)
+file_list_canvas.bind("<Configure>", on_canvas_configure)
+
+def _on_mousewheel(event):
+    file_list_canvas.yview_scroll(int(-1*(event.delta/120)), "units")
+file_list_canvas.bind("<Enter>", lambda e: file_list_canvas.bind_all("<MouseWheel>", _on_mousewheel))
+file_list_canvas.bind("<Leave>", lambda e: file_list_canvas.unbind_all("<MouseWheel>"))
+
+def add_image_to_side_panel(filepath):
+    filename = os.path.basename(filepath)
+    max_length = 10
+    display_name = filename if len(filename) <= max_length else filename[:max_length] + "..."
+    try:
+        image = Image.open(filepath)
+        image.thumbnail((50, 50))
+        thumbnail = ImageTk.PhotoImage(image)
+    except Exception as e:
+        print(f"Błąd przy tworzeniu miniaturki: {e}")
+        return
+
+    frame = tk.Frame(file_list_frame, bg="#555555")
+    frame.pack(pady=2, fill="x")
+    frame.file_name = filename
+    side_panel.all_image_frames.append(frame)
+
+    label = tk.Label(frame, image=thumbnail, bg="#555555")
+    label.image = thumbnail
+    label.pack(side="left", padx=5)
+
+    text = tk.Label(frame, text=display_name, fg="white", bg="#555555")
+    text.pack(side="left")
+
+    eye_icon = Image.open(relative_to_assets("eye.png"))
+    eye_icon = eye_icon.resize((20, 20), Image.Resampling.LANCZOS)
+    eye_icon = ImageTk.PhotoImage(eye_icon)
+    eye_btn = tk.Button(frame, image=eye_icon, bg="#555555", borderwidth=0,
+                        command=lambda: side_panel.toggle_image_display(filepath, window, eye_btn))
+    eye_btn.image = eye_icon
+    eye_btn.pack(side="right", padx=5)
+
+
+    frame.bind("<Button-1>", lambda e, path=filepath, btn=eye_btn, frm=frame: (side_panel.toggle_image_display(path, window, btn), select_main_frame(frm)))
+    label.bind("<Button-1>", lambda e, path=filepath, btn=eye_btn, frm=frame: (side_panel.toggle_image_display(path, window, btn), select_main_frame(frm)))
+    text.bind("<Button-1>", lambda e, path=filepath, btn=eye_btn, frm=frame: (side_panel.toggle_image_display(path, window, btn), select_main_frame(frm)))
+
+def import_file():
+    filepath = filedialog.askopenfilename(filetypes=[("Image files", "*.jpg;*.png;*.jpeg")])
+    if filepath:
+        add_image_to_side_panel(filepath)
 
 window.resizable(False, False)
 window.mainloop()
