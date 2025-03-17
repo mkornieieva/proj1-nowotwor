@@ -7,6 +7,14 @@ extract_path = r"C:\Users\klaud\Downloads\extracted_data_fixed"
 output_path = r"C:\Users\klaud\Downloads\processed_data_final"
 
 
+# Dane do połączenia z bazą
+DB_USER = "nowotwor_user"
+DB_PASSWORD = "nowotwor_eiti"
+DB_DSN = "localhost/XEPDB1"
+
+def get_db_connection():
+    return cx_Oracle.connect(DB_USER, DB_PASSWORD, DB_DSN)
+
 
 if not os.path.exists(output_path):
     os.makedirs(output_path)

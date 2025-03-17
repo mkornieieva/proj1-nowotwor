@@ -1,12 +1,18 @@
 import os
 import zipfile
+import cx_Oracle
 from PIL import Image
+from io import BytesIO
 
 #ścieżki do zmiany
 zip_path = r"C:\Users\klaud\Downloads\archive.zip"
 extract_path = r"C:\Users\klaud\Downloads\extracted_data"
 fixed_path = r"C:\Users\klaud\Downloads\extracted_data_fixed"
 
+# Dane do połączenia z bazą
+DB_USER = "nowotwor_user"
+DB_PASSWORD = "nowotwor_eiti"
+DB_DSN = "localhost/XEPDB1"
 
 
 with zipfile.ZipFile(zip_path, 'r') as zip_ref:
@@ -18,6 +24,8 @@ if not os.path.exists(fixed_path):
     os.makedirs(fixed_path)
 
 
+def get_db_connection():
+    return cx_Oracle.connect(DB_USER, DB_PASSWORD, DB_DSN)
 
 def make_square(image, size):
 
