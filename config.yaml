@@ -1,2 +1,5 @@
 pip install pillow
 pip install Image
+pip install sqlalchemy
+pip install fastapi
+

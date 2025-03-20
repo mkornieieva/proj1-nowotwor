@@ -4,14 +4,13 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="e0308b27-d261-4cba-877e-489bfab439a1" name="Changes" comment="database skrypt">
-      <change afterPath="$PROJECT_DIR$/data/data_processing/normalize_image_with_database.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/data/data_processing/resize_image_with_database.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/data/database/laczenie_user.env" afterDir="false" />
+    <list default="true" id="e0308b27-d261-4cba-877e-489bfab439a1" name="Changes" comment="database connection">
+      <change afterPath="$PROJECT_DIR$/data/database/database.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/data/database/main.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/data/database/models.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/data/database/services.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/config.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/config.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/data_processing/normalize_image_resolution.py" beforeDir="false" afterPath="$PROJECT_DIR$/data/data_processing/normalize_image_resolution.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/data_processing/resize_images_to_256.py" beforeDir="false" afterPath="$PROJECT_DIR$/data/data_processing/resize_images_to_256.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -95,7 +94,7 @@
       <workItem from="1741024324382" duration="1937000" />
       <workItem from="1741027081638" duration="1185000" />
       <workItem from="1741525647030" duration="2553000" />
-      <workItem from="1741765834899" duration="6826000" />
+      <workItem from="1741765834899" duration="8538000" />
     </task>
     <task id="LOCAL-00001" summary="config.yaml">
       <option name="closed" value="true" />
@@ -121,7 +120,15 @@
       <option name="project" value="LOCAL" />
       <updated>1742168615345</updated>
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary="database connection">
+      <option name="closed" value="true" />
+      <created>1742239214530</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1742239214530</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -143,6 +150,7 @@
     <MESSAGE value="config.yaml" />
     <MESSAGE value="struktura" />
     <MESSAGE value="database skrypt" />
-    <option name="LAST_COMMIT_MESSAGE" value="database skrypt" />
+    <MESSAGE value="database connection" />
+    <option name="LAST_COMMIT_MESSAGE" value="database connection" />
   </component>
 </project>
