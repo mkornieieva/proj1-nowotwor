@@ -19,7 +19,7 @@ def get_db_connection():
 if not os.path.exists(output_path):
     os.makedirs(output_path)
 
-TARGET_SIZE = (256, 256)
+TARGET_SIZE = (512, 512)
 
 for root, dirs, files in os.walk(extract_path):
     for file in files:

@@ -1,6 +1,7 @@
 from sqlalchemy import Column, Integer, LargeBinary
 from database import Base
 
+
 class ProcessedImage(Base):
     __tablename__ = "ProcessedImages"
 
