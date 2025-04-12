@@ -1,0 +1,8 @@
+train: C:/Users/basia/PycharmProjects/proj1-nowotwor/data/output3/train/images
+val: C:/Users/basia/PycharmProjects/proj1-nowotwor/data/output3/val/images
+test: # test images (relative to 'path')
+
+# Classes
+names:
+  0: negative
+  1: positive
