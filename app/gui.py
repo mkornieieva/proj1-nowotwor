@@ -1,4 +1,5 @@
 import os
+import cv2
 import tkinter as tk
 from tkinter import Tk, Canvas, Entry, Button, PhotoImage, filedialog
 from PIL import Image, ImageTk
@@ -6,6 +7,9 @@ from config import relative_to_assets
 import side_panel
 from main_panel import zoom_image, drag, select_main_frame
 from app.export_to_pdf import export_main_panel_to_pdf
+from model_loading.model_loading import predict_and_draw
+
+
 
 window = Tk()
 window.geometry("1321x700")
@@ -47,6 +51,29 @@ def search_files(event=None):
 
 entry_2.bind("<KeyRelease>", search_files)
 
+def run_model_on_selected_image():
+
+    filepath = side_panel.selected_image_path
+    if not filepath:
+        print("Brak wybranego zdjęcia do analizy.")
+        return
+
+    annotated = predict_and_draw(filepath)
+
+
+    annotated_rgb = cv2.cvtColor(annotated, cv2.COLOR_BGR2RGB)
+    img_pil = Image.fromarray(annotated_rgb)
+    img_tk = ImageTk.PhotoImage(img_pil)
+
+    popup = tk.Toplevel(window)
+    popup.title("Wynik analizy")
+
+    popup.geometry(f"{img_pil.width}x{img_pil.height}")
+    lbl = tk.Label(popup, image=img_tk)
+    lbl.image = img_tk  # referencja
+    lbl.pack()
+
+
 def show_menu():
     x = button_2.winfo_rootx()
     y = button_2.winfo_rooty() + button_2.winfo_height()
@@ -81,10 +108,17 @@ button_5 = Button(window, image=button_image_5, borderwidth=0, highlightthicknes
 button_5.place(x=286, y=33, width=30, height=31)
 
 button_image_6 = PhotoImage(file=relative_to_assets("button_6.png"))
-button_6 = Button(window, image=button_image_6, borderwidth=0, highlightthickness=200,
-                  highlightbackground="#555555", activebackground="#555555", bg="#555555",
-                  command=lambda: print("heatmap"), relief="flat")
+button_6 = Button(
+    window,
+    image=button_image_6,
+    command=run_model_on_selected_image,
+    borderwidth=0, highlightthickness=200,
+    highlightbackground="#555555",
+    activebackground="#555555", bg="#555555",
+    relief="flat"
+)
 button_6.place(x=413, y=32, width=34, height=36)
+
 
 def show_popup():
     popup = tk.Toplevel(window)
@@ -99,6 +133,26 @@ def show_popup():
     info_label.pack(expand=True)
     close_button = tk.Button(content_frame, text="Zamknij", command=popup.destroy)
     close_button.pack(pady=5)
+
+
+def show_prediction_popup(result):
+    popup = tk.Toplevel(window)
+    popup.geometry("300x100+950+80")
+    popup.resizable(False, False)
+    popup.overrideredirect(False)
+
+    border_frame = tk.Frame(popup, bg="white", padx=2, pady=2)
+    border_frame.pack(expand=True, fill="both")
+
+    content_frame = tk.Frame(border_frame, bg="#555555")
+    content_frame.pack(expand=True, fill="both")
+
+    info_label = tk.Label(content_frame, text=result, bg="#555555", fg="white", font=("Arial", 12))
+    info_label.pack(expand=True)
+
+    close_button = tk.Button(content_frame, text="Zamknij", command=popup.destroy)
+    close_button.pack(pady=5)
+
 
 button_image_7 = PhotoImage(file=relative_to_assets("button_7.png"))
 button_7 = Button(window, image=button_image_7, borderwidth=0, highlightthickness=200,
@@ -148,13 +202,10 @@ def add_image_to_side_panel(filepath):
     filename = os.path.basename(filepath)
     max_length = 10
     display_name = filename if len(filename) <= max_length else filename[:max_length] + "..."
-    try:
-        image = Image.open(filepath)
-        image.thumbnail((50, 50))
-        thumbnail = ImageTk.PhotoImage(image)
-    except Exception as e:
-        print(f"Błąd przy tworzeniu miniaturki: {e}")
-        return
+
+    img_pil = Image.open(filepath)
+    img_pil.thumbnail((50, 50))
+    thumbnail = ImageTk.PhotoImage(img_pil)
 
     frame = tk.Frame(file_list_frame, bg="#555555")
     frame.pack(pady=2, fill="x")
@@ -180,11 +231,25 @@ def add_image_to_side_panel(filepath):
     frame.bind("<Button-1>", lambda e, path=filepath, btn=eye_btn, frm=frame: (side_panel.toggle_image_display(path, window, btn), select_main_frame(frm)))
     label.bind("<Button-1>", lambda e, path=filepath, btn=eye_btn, frm=frame: (side_panel.toggle_image_display(path, window, btn), select_main_frame(frm)))
     text.bind("<Button-1>", lambda e, path=filepath, btn=eye_btn, frm=frame: (side_panel.toggle_image_display(path, window, btn), select_main_frame(frm)))
-
 def import_file():
     filepath = filedialog.askopenfilename(filetypes=[("Image files", "*.jpg;*.png;*.jpeg")])
     if filepath:
         add_image_to_side_panel(filepath)
+
+
+def run_model_on_selected_image():
+    from side_panel import selected_image_path
+    if not selected_image_path:
+        print("Brak wybranego zdjęcia.")
+        return
+
+    result = predict_and_draw(selected_image_path)
+    rgb = cv2.cvtColor(result, cv2.COLOR_BGR2RGB)
+    img_pil = Image.fromarray(rgb)
+    img_tk = ImageTk.PhotoImage(img_pil)
+
+    from main_panel import update_main_image
+    update_main_image(img_tk)
 
 window.resizable(False, False)
 window.mainloop()

@@ -146,8 +146,9 @@ def open_image_in_main_panel(filepath, window):
             frame = tk.Frame(window, bg="#000000")
             frame.place(x=320 + col * 520, y=110 + row * 300, width=300, height=300)
             label = tk.Label(frame, image=img, bg="#000000")
-            label.image = img  # zachowanie referencji
-            label.pack()
+            label.image = img
+            label.place(x=0, y=0)
+            frame.original_image = img
             frame.slot_index = i
             frame.filepath = filepath
             frame.bind("<Button-1>", lambda e, frm=frame: select_main_frame(frm))
@@ -161,3 +162,13 @@ def remove_image(frame):
     idx = frame.slot_index
     frame.destroy()
     grid_slots[idx] = None
+main_display_frames = []
+
+def update_main_image(new_img_tk):
+    global selected_frame
+    if selected_frame:
+        overlay = tk.Label(selected_frame, image=new_img_tk, bg="#000000")
+        overlay.image = new_img_tk
+        overlay.place(x=0, y=0)
+
+

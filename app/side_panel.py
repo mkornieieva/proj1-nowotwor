@@ -7,8 +7,12 @@ from config import relative_to_assets
 all_image_frames = []
 grid_slots = [None, None, None, None]
 displayed_images = {}
+selected_image_path = None
 
 def toggle_image_display(filepath, window, eye_btn=None):
+    global selected_image_path
+    selected_image_path = filepath
+
     from main_panel import open_image_in_main_panel, remove_image
     if filepath not in displayed_images:
         frame = open_image_in_main_panel(filepath, window)
