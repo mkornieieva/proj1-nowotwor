@@ -10,7 +10,6 @@ from app.export_to_pdf import export_main_panel_to_pdf
 from model_loading.model_loading import predict_and_draw
 
 
-
 window = Tk()
 window.geometry("1321x700")
 window.configure(bg="#000000")
@@ -51,28 +50,6 @@ def search_files(event=None):
 
 entry_2.bind("<KeyRelease>", search_files)
 
-def run_model_on_selected_image():
-
-    filepath = side_panel.selected_image_path
-    if not filepath:
-        print("Brak wybranego zdjęcia do analizy.")
-        return
-
-    annotated = predict_and_draw(filepath)
-
-
-    annotated_rgb = cv2.cvtColor(annotated, cv2.COLOR_BGR2RGB)
-    img_pil = Image.fromarray(annotated_rgb)
-    img_tk = ImageTk.PhotoImage(img_pil)
-
-    popup = tk.Toplevel(window)
-    popup.title("Wynik analizy")
-
-    popup.geometry(f"{img_pil.width}x{img_pil.height}")
-    lbl = tk.Label(popup, image=img_tk)
-    lbl.image = img_tk  # referencja
-    lbl.pack()
-
 
 def show_menu():
     x = button_2.winfo_rootx()
@@ -111,7 +88,7 @@ button_image_6 = PhotoImage(file=relative_to_assets("button_6.png"))
 button_6 = Button(
     window,
     image=button_image_6,
-    command=run_model_on_selected_image,
+    command=lambda: run_model_on_selected_image(),
     borderwidth=0, highlightthickness=200,
     highlightbackground="#555555",
     activebackground="#555555", bg="#555555",
@@ -174,7 +151,6 @@ folder_list_frame.pack(pady=5, fill="x")
 file_label = tk.Label(file_explorer_frame, text="Pliki:", bg="#333333", fg="white")
 file_label.pack(pady=(10, 0))
 
-
 file_list_canvas = tk.Canvas(file_explorer_frame, bg="#444444", borderwidth=0, highlightthickness=0)
 file_list_canvas.pack(side=tk.LEFT, fill="both", expand=True)
 
@@ -227,15 +203,14 @@ def add_image_to_side_panel(filepath):
     eye_btn.image = eye_icon
     eye_btn.pack(side="right", padx=5)
 
-
     frame.bind("<Button-1>", lambda e, path=filepath, btn=eye_btn, frm=frame: (side_panel.toggle_image_display(path, window, btn), select_main_frame(frm)))
     label.bind("<Button-1>", lambda e, path=filepath, btn=eye_btn, frm=frame: (side_panel.toggle_image_display(path, window, btn), select_main_frame(frm)))
     text.bind("<Button-1>", lambda e, path=filepath, btn=eye_btn, frm=frame: (side_panel.toggle_image_display(path, window, btn), select_main_frame(frm)))
+
 def import_file():
     filepath = filedialog.askopenfilename(filetypes=[("Image files", "*.jpg;*.png;*.jpeg")])
     if filepath:
         add_image_to_side_panel(filepath)
-
 
 def run_model_on_selected_image():
     from side_panel import selected_image_path
@@ -250,6 +225,7 @@ def run_model_on_selected_image():
 
     from main_panel import update_main_image
     update_main_image(img_tk)
+
 
 window.resizable(False, False)
 window.mainloop()
