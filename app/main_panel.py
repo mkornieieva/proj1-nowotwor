@@ -168,12 +168,15 @@ main_display_frames = []
 def update_main_image(new_img_tk):
     global selected_frame
     if selected_frame:
-        # Dopasowanie nowego obrazu do rozmiaru 300x300 z zachowaniem proporcji
-        img = new_img_tk._PhotoImage__photo.zoom(1)
+
+        for widget in selected_frame.winfo_children():
+            widget.destroy()
+
+        # Konwersja ImageTk.PhotoImage -> PIL.Image
         img_pil = ImageTk.getimage(new_img_tk)
 
-        img_ratio = img_pil.width / img_pil.height
         frame_width, frame_height = 300, 300
+        img_ratio = img_pil.width / img_pil.height
         frame_ratio = frame_width / frame_height
 
         if img_ratio > frame_ratio:
@@ -186,11 +189,6 @@ def update_main_image(new_img_tk):
         resized = img_pil.resize((new_width, new_height), Image.Resampling.LANCZOS)
         final_img = ImageTk.PhotoImage(resized)
 
-        # Usunięcie poprzednich widgetów
-        for widget in selected_frame.winfo_children():
-            widget.destroy()
-
-        # Aktualizacja obrazu
         label = tk.Label(selected_frame, image=final_img, bg="#000000")
         label.image = final_img
         label.place(x=0, y=0)
@@ -199,5 +197,23 @@ def update_main_image(new_img_tk):
         selected_frame.base_image = resized
         selected_frame.display_image = final_img
         selected_frame.current_scale = 1.0
+
+
+        if hasattr(selected_frame, "filepath") and selected_frame.filepath.endswith("_ozn.png"):
+            selected_frame.filepath = selected_frame.filepath.replace("_ozn", "")
+
+def is_annotated(filepath):
+    return filepath.endswith("_ozn.png")
+
+def get_original_path(filepath):
+    if filepath.endswith("_ozn.png"):
+        return filepath.replace("_ozn.png", ".png")
+    return filepath
+
+def get_annotated_path(filepath):
+    if filepath.endswith(".png") and not filepath.endswith("_ozn.png"):
+        return filepath.replace(".png", "_ozn.png")
+    return filepath
+
 
 

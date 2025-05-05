@@ -7,7 +7,7 @@ from config import relative_to_assets
 import side_panel
 from main_panel import zoom_image, drag, select_main_frame
 from app.export_to_pdf import export_main_panel_to_pdf
-from model_loading.model_loading import predict_and_draw
+
 
 
 window = Tk()
@@ -215,19 +215,34 @@ def import_file():
 def run_model_on_selected_image():
     from main_panel import selected_frame, update_main_image
     from model_loading.model_loading import predict_and_draw
+    from __main__ import add_image_to_side_panel
+
 
     if selected_frame is None or not hasattr(selected_frame, 'filepath'):
         print("Brak zaznaczonego obrazu w panelu głównym.")
         return
 
-    filepath = selected_frame.filepath
-    result = predict_and_draw(filepath)
+    original_path = selected_frame.filepath
+    dir_name, file_name = os.path.split(original_path)
+    name, ext = os.path.splitext(file_name)
 
-    rgb = cv2.cvtColor(result, cv2.COLOR_BGR2RGB)
-    img_pil = Image.fromarray(rgb)
-    img_tk = ImageTk.PhotoImage(img_pil)
+    annotated_path = os.path.join(dir_name, f"{name}_ozn{ext}")
 
+    if not os.path.exists(annotated_path):
+        print("Generowanie oznaczonego obrazu...")
+        result = predict_and_draw(original_path)
+        cv2.imwrite(annotated_path, result)
+        add_image_to_side_panel(annotated_path)
+    else:
+        print(" Usuwanie oznaczonego obrazu i przywracanie oryginału...")
+        os.remove(annotated_path)
+        annotated_path = original_path  # wracamy do oryginału
+
+    # Załaduj obraz (oryginalny lub oznaczony) i przekaż do update_main_image
+    img = Image.open(annotated_path)
+    img_tk = ImageTk.PhotoImage(img)
     update_main_image(img_tk)
+
 
 
 

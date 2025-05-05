@@ -4,12 +4,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="e0308b27-d261-4cba-877e-489bfab439a1" name="Changes" comment="pliki dla uzycia bazy">
-      <change beforePath="$PROJECT_DIR$/.idea/proj1-nowotwor.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/proj1-nowotwor.iml" afterDir="false" />
+    <list default="true" id="e0308b27-d261-4cba-877e-489bfab439a1" name="Changes" comment="połączenie app z modelem(wstępne)">
+      <change afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/gui.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/gui.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/main_panel.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/main_panel.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/side_panel.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/side_panel.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -140,7 +139,9 @@
       <workItem from="1745707059078" duration="1615000" />
       <workItem from="1745708698434" duration="6708000" />
       <workItem from="1745715478268" duration="675000" />
-      <workItem from="1745749748368" duration="606000" />
+      <workItem from="1745749748368" duration="1450000" />
+      <workItem from="1746466652863" duration="1671000" />
+      <workItem from="1746485943033" duration="3383000" />
     </task>
     <task id="LOCAL-00001" summary="config.yaml">
       <option name="closed" value="true" />
@@ -182,7 +183,15 @@
       <option name="project" value="LOCAL" />
       <updated>1742479171787</updated>
     </task>
-    <option name="localTasksCounter" value="6" />
+    <task id="LOCAL-00006" summary="połączenie app z modelem(wstępne)">
+      <option name="closed" value="true" />
+      <created>1745750507597</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1745750507597</updated>
+    </task>
+    <option name="localTasksCounter" value="7" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -206,10 +215,11 @@
     <MESSAGE value="database skrypt" />
     <MESSAGE value="database connection" />
     <MESSAGE value="pliki dla uzycia bazy" />
-    <option name="LAST_COMMIT_MESSAGE" value="pliki dla uzycia bazy" />
+    <MESSAGE value="połączenie app z modelem(wstępne)" />
+    <option name="LAST_COMMIT_MESSAGE" value="połączenie app z modelem(wstępne)" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/proj1_nowotwor$getUID.coverage" NAME="getUID Coverage Results" MODIFIED="1744048918750" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/data/data_processing" />
-    <SUITE FILE_PATH="coverage/proj1_nowotwor$gui.coverage" NAME="gui Coverage Results" MODIFIED="1745750354401" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/app" />
+    <SUITE FILE_PATH="coverage/proj1_nowotwor$gui.coverage" NAME="gui Coverage Results" MODIFIED="1746489237140" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/app" />
   </component>
 </project>
