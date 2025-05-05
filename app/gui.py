@@ -213,18 +213,22 @@ def import_file():
         add_image_to_side_panel(filepath)
 
 def run_model_on_selected_image():
-    from side_panel import selected_image_path
-    if not selected_image_path:
-        print("Brak wybranego zdjęcia.")
+    from main_panel import selected_frame, update_main_image
+    from model_loading.model_loading import predict_and_draw
+
+    if selected_frame is None or not hasattr(selected_frame, 'filepath'):
+        print("Brak zaznaczonego obrazu w panelu głównym.")
         return
 
-    result = predict_and_draw(selected_image_path)
+    filepath = selected_frame.filepath
+    result = predict_and_draw(filepath)
+
     rgb = cv2.cvtColor(result, cv2.COLOR_BGR2RGB)
     img_pil = Image.fromarray(rgb)
     img_tk = ImageTk.PhotoImage(img_pil)
 
-    from main_panel import update_main_image
     update_main_image(img_tk)
+
 
 
 window.resizable(False, False)

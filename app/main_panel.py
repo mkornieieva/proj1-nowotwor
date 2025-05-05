@@ -164,11 +164,40 @@ def remove_image(frame):
     grid_slots[idx] = None
 main_display_frames = []
 
+# main_panel.py
 def update_main_image(new_img_tk):
     global selected_frame
     if selected_frame:
-        overlay = tk.Label(selected_frame, image=new_img_tk, bg="#000000")
-        overlay.image = new_img_tk
-        overlay.place(x=0, y=0)
+        # Dopasowanie nowego obrazu do rozmiaru 300x300 z zachowaniem proporcji
+        img = new_img_tk._PhotoImage__photo.zoom(1)
+        img_pil = ImageTk.getimage(new_img_tk)
+
+        img_ratio = img_pil.width / img_pil.height
+        frame_width, frame_height = 300, 300
+        frame_ratio = frame_width / frame_height
+
+        if img_ratio > frame_ratio:
+            new_width = frame_width
+            new_height = int(frame_width / img_ratio)
+        else:
+            new_height = frame_height
+            new_width = int(frame_height * img_ratio)
+
+        resized = img_pil.resize((new_width, new_height), Image.Resampling.LANCZOS)
+        final_img = ImageTk.PhotoImage(resized)
+
+        # Usunięcie poprzednich widgetów
+        for widget in selected_frame.winfo_children():
+            widget.destroy()
+
+        # Aktualizacja obrazu
+        label = tk.Label(selected_frame, image=final_img, bg="#000000")
+        label.image = final_img
+        label.place(x=0, y=0)
+        label.bind("<Button-1>", lambda e, frm=selected_frame: select_main_frame(frm))
+
+        selected_frame.base_image = resized
+        selected_frame.display_image = final_img
+        selected_frame.current_scale = 1.0
 
 
