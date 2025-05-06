@@ -1,8 +1,7 @@
-train: C:/Users/basia/PycharmProjects/proj1-nowotwor/data/output3/train/images
-val: C:/Users/basia/PycharmProjects/proj1-nowotwor/data/output3/val/images
-test: # test images (relative to 'path')
+path: C:\Users\USER\Downloads\dataset
 
-# Classes
-names:
-  0: negative
-  1: positive
+train: images/train
+val:   images/val
+
+nc: 1
+names: ['tumor']
