@@ -10,7 +10,7 @@ def select_main_frame(frame):
         selected_frame.config(highlightthickness=0)
     selected_frame = frame
     if frame.winfo_exists():
-        frame.config(highlightthickness=2, highlightbackground="white")
+        frame.config(highlightthickness=2, highlightbackground="black")
 
 
 
