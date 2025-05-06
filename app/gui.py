@@ -216,6 +216,7 @@ def run_model_on_selected_image():
     from main_panel import selected_frame, update_main_image
     from model_loading.model_loading import predict_and_draw
     from __main__ import add_image_to_side_panel
+    from side_panel import  all_image_frames
 
 
     if selected_frame is None or not hasattr(selected_frame, 'filepath'):
@@ -225,7 +226,6 @@ def run_model_on_selected_image():
     original_path = selected_frame.filepath
     dir_name, file_name = os.path.split(original_path)
     name, ext = os.path.splitext(file_name)
-
     annotated_path = os.path.join(dir_name, f"{name}_ozn{ext}")
 
     if not os.path.exists(annotated_path):
@@ -234,17 +234,26 @@ def run_model_on_selected_image():
         cv2.imwrite(annotated_path, result)
         add_image_to_side_panel(annotated_path)
     else:
-        print(" Usuwanie oznaczonego obrazu i przywracanie oryginału...")
-        os.remove(annotated_path)
+        print("Usuwanie oznaczonego obrazu i przywracanie oryginału...")
+        try:
+            os.remove(annotated_path)
+        except Exception as e:
+            print(f"Błąd usuwania pliku: {e}")
+
+        # Usuwanie miniaturki z panelu bocznego
+        for frame in all_image_frames[:]:
+            if hasattr(frame, "file_name") and frame.file_name == f"{name}_ozn{ext}":
+                frame.destroy()
+                all_image_frames.remove(frame)
+                print(f"Usunięto miniaturkę: {name}_ozn{ext}")
+                break
+
         annotated_path = original_path  # wracamy do oryginału
 
     # Załaduj obraz (oryginalny lub oznaczony) i przekaż do update_main_image
     img = Image.open(annotated_path)
     img_tk = ImageTk.PhotoImage(img)
     update_main_image(img_tk)
-
-
-
 
 window.resizable(False, False)
 window.mainloop()
