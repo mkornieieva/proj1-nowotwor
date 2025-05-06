@@ -1,7 +1,7 @@
 task: detect
 mode: train
 model: yolo11n.pt
-data: C:/Users/basia/PycharmProjects/proj1-nowotwor/model/data.yaml
+data: C:/Users/basia/PycharmProjects/proj1-nowotwor/last_model/data.yaml
 epochs: 100
 time: null
 patience: 100
