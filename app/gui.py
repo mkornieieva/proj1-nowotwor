@@ -1,12 +1,15 @@
 import os
 import cv2
 import tkinter as tk
+import glob
 from tkinter import Tk, Canvas, Entry, Button, PhotoImage, filedialog
 from PIL import Image, ImageTk
 from config import relative_to_assets
 import side_panel
 from main_panel import zoom_image, drag, select_main_frame
 from app.export_to_pdf import export_main_panel_to_pdf
+from main_panel import selected_frame
+from side_panel import all_image_frames
 
 
 

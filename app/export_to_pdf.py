@@ -1,6 +1,7 @@
 from PIL import Image, ImageDraw, ImageFont
 import os
 import tkinter as tk
+from PIL import ImageTk
 
 
 def get_pdf_filename(master):
@@ -49,7 +50,7 @@ def export_main_panel_to_pdf(master, output_path=None, description_height=100, m
         if frame is not None and hasattr(frame, 'filepath'):
             print("Przetwarzanie obrazu:", frame.filepath)
             try:
-                img = Image.open(frame.filepath).convert("RGB")
+                img = ImageTk.getimage(frame.display_image).convert("RGB")
                 images_list.append(img)
             except Exception as e:
                 print("Błąd przy otwieraniu obrazu:", frame.filepath, e)
