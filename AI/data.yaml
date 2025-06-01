@@ -1,7 +1,7 @@
-path: C:\Users\USER\Downloads\dataset
+path: C:/Users/USER/Downloads/dataset
 
-train: images/train
-val:   images/val
+train: balanced/images/train
+val:   balanced/images/val
 
 nc: 1
 names: ['tumor']
