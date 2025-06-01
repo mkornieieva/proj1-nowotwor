@@ -1,0 +1,86 @@
+#Sidebar {
+    background-color: #1e1f3d;
+    border-right: 1px solid #2e2f4f;
+}
+
+#SidebarButton {
+    background-color: transparent;
+    border: none;
+    margin: 10px;
+}
+
+#SidebarButton:hover {
+    background-color: #2e2f4f;
+    border-radius: 8px;
+}
+
+#SidebarTopButton {
+    background-color: #7692ff;
+    border: none;
+    padding: 8px 12px;
+    font-weight: bold;
+    border-radius: 4px;
+}
+
+#SidebarTopButton:hover {
+    background-color: #ABD2FA;
+}
+
+#SidebarLabel {
+    background-color: white;
+    color: black;
+    margin: 10px 5px;
+    padding: 10px;
+    border-radius: 6px;
+    border: 1px solid #cccccc;
+}
+
+#PreviewPanel {
+    background-color: #f6f7fb;
+}
+
+#RightPanel {
+    background-color: #1e1f3d;
+}
+
+#BottomOverlay {
+    background-color: rgba(255, 255, 255, 0.95);
+    border: 1px solid #cccccc;
+    border-radius: 12px;
+}
+
+#OverlayButton {
+    background-color: #7692ff;
+    border: none;
+    border-radius: 6px;
+    padding: 10px 16px;
+    font-weight: bold;
+}
+
+#OverlayButton:hover {
+    background-color: #abd2fa;
+}
+
+#FilenameLabel {
+    background-color: transparent;
+    color: black;
+    border: 1px solid #aabfc4;
+    border-radius: 4px;
+    padding: 4px 8px;
+    margin-left: 5px;
+    margin-right: 5px;
+}
+
+#SidebarFilenames {
+    background-color: #1e1f3d;
+    border: none;
+}
+
+#right_scroll_content{
+    background-color: #f6f7fb;
+}
+
+QScrollArea {
+    background: transparent;
+    border: none;
+}
