@@ -2,7 +2,7 @@ from ultralytics import YOLO
 import os
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-MODEL_PATH = os.path.join(BASE_DIR, 'model2.0', 'weights', 'best.pt')
+MODEL_PATH = os.path.join(BASE_DIR, '..', 'model2.0', 'weights', 'best.pt')
 
 model = YOLO(MODEL_PATH)
 
