@@ -2,22 +2,84 @@ import sys
 from PIL import Image, ImageDraw
 from PySide6.QtPrintSupport import QPrinter
 from PySide6.QtWidgets import (
-    QApplication, QMainWindow, QWidget, QPushButton, QVBoxLayout,
-    QHBoxLayout, QFrame, QSizePolicy, QLabel, QScrollArea, QFileDialog, QListWidget, QAbstractItemView, QListWidgetItem
+    QApplication, QMainWindow, QWidget, QPushButton, QVBoxLayout, QToolButton,
+    QHBoxLayout, QFrame, QSizePolicy, QLabel, QScrollArea, QFileDialog,
+    QListWidget, QAbstractItemView, QListWidgetItem
 )
 from PySide6.QtCore import Qt, QSize, QEvent, QPoint, QSizeF, QRectF, QRect
-from PySide6.QtGui import QIcon, QFontMetrics, QPainter, QPageLayout, QPixmap
+from PySide6.QtGui import QIcon, QFontMetrics, QPainter, QPageLayout, QPixmap, QPainterPath
 from handlers import *
 from detect import detect_bounding_boxes_batch
+
+class CustomTitleBar(QWidget):
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.setObjectName("CustomTitleBar")
+        self.setFixedHeight(40)
+        layout = QHBoxLayout(self)
+        layout.setContentsMargins(10, 0, 10, 0)
+        layout.setSpacing(8)
+
+        self.title = QLabel("Styled Dashboard", self)
+        self.title.setStyleSheet("color: #d09dd6; font-weight: bold;")
+        layout.addWidget(self.title)
+        layout.addStretch()
+
+        # Minimize, Maximize/Restore, Close buttons
+        btn_min = QToolButton(self)
+        btn_min.setIcon(QIcon("assets/icons/minimize.png"))
+        btn_min.setIconSize(QSize(20, 20))
+        btn_min.setStyleSheet("background: transparent; border: none;")
+        btn_min.clicked.connect(self.window().showMinimized)
+        layout.addWidget(btn_min)
+
+        self.btn_max = QToolButton(self)
+        self.btn_max.setIcon(QIcon("assets/icons/maximize.png"))
+        self.btn_max.setIconSize(QSize(20, 20))
+        self.btn_max.setStyleSheet("background: transparent; border: none;")
+        self.btn_max.clicked.connect(self.toggle_max_restore)
+        layout.addWidget(self.btn_max)
+
+        btn_close = QToolButton(self)
+        btn_close.setIcon(QIcon("assets/icons/close.png"))
+        btn_close.setIconSize(QSize(20, 20))
+        btn_close.setStyleSheet("background: transparent; border: none;")
+        btn_close.clicked.connect(self.window().close)
+        layout.addWidget(btn_close)
+
+        self._drag_pos = None
+
+    def toggle_max_restore(self):
+        win = self.window()
+        if win.isMaximized():
+            win.showNormal()
+            self.btn_max.setIcon(QIcon("assets/icons/maximize.png"))
+        else:
+            win.showMaximized()
+            self.btn_max.setIcon(QIcon("assets/icons/maximize.png"))
+
+    def mousePressEvent(self, event):
+        if event.button() == Qt.LeftButton:
+            self._drag_pos = event.globalPosition().toPoint() - self.window().frameGeometry().topLeft()
+            event.accept()
+
+    def mouseMoveEvent(self, event):
+        if self._drag_pos and event.buttons() == Qt.LeftButton:
+            self.window().move(event.globalPosition().toPoint() - self._drag_pos)
+            event.accept()
+
+    def mouseReleaseEvent(self, event):
+        self._drag_pos = None
 
 # function to define the main window of the application
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Styled Dashboard")
+        self.setWindowTitle("Równowaga - app")
         self.setMinimumSize(1280, 720)
+        self.setWindowFlag(Qt.FramelessWindowHint)
+        self.setAttribute(Qt.WA_TranslucentBackground)
         self.init_ui()
-
         self.current_image_index = -1
         self.image_paths = []
         self.right_thumbnails = []
@@ -26,6 +88,7 @@ class MainWindow(QMainWindow):
         self.current_boxes = []
         self.boxes_by_path = {}
         self.show_boxes = True
+        self.setWindowFlag(Qt.FramelessWindowHint)
 
 
     def eventFilter(self, obj, event):
@@ -213,19 +276,28 @@ class MainWindow(QMainWindow):
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
 
-        # root layout
-        self.root_layout = QHBoxLayout(central_widget)
+        # Root layout (vertical)
+        self.root_layout = QVBoxLayout(central_widget)
         self.root_layout.setContentsMargins(0, 0, 0, 0)
         self.root_layout.setSpacing(0)
 
-        # left sidebar
+        # Custom title bar
+        self.title_bar = CustomTitleBar(self)
+        self.root_layout.addWidget(self.title_bar)
+
+        # Main content layout (horizontal)
+        self.content_layout = QHBoxLayout()
+        self.content_layout.setContentsMargins(0, 0, 0, 0)
+        self.content_layout.setSpacing(0)
+
+        # --- Sidebar ---
         self.sidebar = QFrame()
         self.sidebar.setObjectName("Sidebar")
         self.sidebar.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.sidebar_layout = QVBoxLayout(self.sidebar)
         self.sidebar_layout.setAlignment(Qt.AlignTop)
 
-        # top-left 3 buttons
+        # Top-left 3 buttons
         btn_row = QHBoxLayout()
         for i in range(3):
             btn = QPushButton()
@@ -240,30 +312,26 @@ class MainWindow(QMainWindow):
                 btn.clicked.connect(lambda: delete_selected_images(self))
             elif i == 2:
                 btn.clicked.connect(self.toggle_bounding_boxes)
-                self.sidebar_toggle_button = btn  # zapisz referencję do zmiany ikonki
-                btn.setIcon(QIcon("assets/icons/bbox_show.png"))  # ustaw ikonę startową
+                self.sidebar_toggle_button = btn
+                btn.setIcon(QIcon("assets/icons/bbox_show.png"))
 
             btn_row.addWidget(btn)
-
         self.sidebar_layout.addLayout(btn_row)
 
-        # text area below buttons
+        # Text area below buttons
         self.sidebar_label = QLabel("Tu będzie opis lub tekst")
         self.sidebar_label.setObjectName("SidebarLabel")
         self.sidebar_label.setWordWrap(True)
         self.sidebar_label.setMinimumHeight(60)
         self.sidebar_layout.addWidget(self.sidebar_label)
 
-        # scrollowalna lista plikow z mozliwoscia zaznaczania
+        # Scrollable file list
         self.sidebar_file_list = QListWidget()
         self.sidebar_file_list.setSelectionMode(QAbstractItemView.ExtendedSelection)
         self.sidebar_file_list.setObjectName("SidebarFileList")
         self.sidebar_layout.addWidget(self.sidebar_file_list)
 
-        # spacer for list of files or scrollable content later
-        # self.sidebar_layout.addStretch()
-
-        # center preview panel
+        # --- Center preview panel ---
         self.preview_panel = QFrame()
         self.preview_panel.setObjectName("PreviewPanel")
         self.preview_panel.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
@@ -277,7 +345,7 @@ class MainWindow(QMainWindow):
         self.main_image_label.move(0, 0)
         self.main_image_label.resize(self.preview_panel.size())
 
-        # right panel
+        # --- Right panel ---
         self.right_panel = QFrame()
         self.right_panel.setObjectName("RightPanel")
         self.right_panel.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
@@ -293,7 +361,7 @@ class MainWindow(QMainWindow):
         layout = QVBoxLayout(self.right_panel)
         layout.addWidget(scroll_area)
 
-        # bottom overlay
+        # --- Bottom overlay ---
         self.bottom_panel = QFrame(self.preview_panel)
         self.bottom_panel.setObjectName("BottomOverlay")
         self.bottom_panel_layout = QHBoxLayout(self.bottom_panel)
@@ -306,7 +374,7 @@ class MainWindow(QMainWindow):
         for icon_filename, handler in zip(icons, handlers):
             btn = QPushButton()
             btn.setIcon(QIcon(f"assets/icons/{icon_filename}"))
-            btn.setIconSize(QSize(32, 32))  # dopasuj do preferencji
+            btn.setIconSize(QSize(32, 32))
             btn.setObjectName("OverlayButton")
             btn.clicked.connect(handler)
             self.bottom_buttons.append(btn)
@@ -315,19 +383,21 @@ class MainWindow(QMainWindow):
         self.bottom_panel.setParent(self.preview_panel)
         self.bottom_panel.raise_()
 
-        # add all to layout (stretch applied in resizeEvent)
-        self.root_layout.addWidget(self.sidebar)
-        self.root_layout.addWidget(self.preview_panel)
-        self.root_layout.addWidget(self.right_panel)
-        # install event filter for scrolling
+        # --- Add panels to content layout ---
+        self.content_layout.addWidget(self.sidebar)
+        self.content_layout.addWidget(self.preview_panel)
+        self.content_layout.addWidget(self.right_panel)
+
+        # --- Add content layout to root layout ---
+        self.root_layout.addLayout(self.content_layout)
+
+        # --- Event filters and drag support ---
         self.right_scroll_content.installEventFilter(self)
         self.main_image_label.installEventFilter(self)
         self.preview_panel.installEventFilter(self)
-        # drag on image support
         self._is_dragging = False
         self._drag_start_pos = None
         self._scroll_offset = QPoint(0, 0)
-
 
     # event handlers for mouse and scroll events
     def mousePressEvent(self, event):
@@ -436,6 +506,18 @@ class MainWindow(QMainWindow):
             self._scroll_offset = QPoint(0, 0)
 
         self.update_image_position()
+
+    def paintEvent(self, event):
+        path = QPainterPath()
+        radius = 16
+        path.addRoundedRect(self.rect(), radius, radius)
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.Antialiasing)
+        painter.setClipPath(path)
+        painter.setPen(Qt.NoPen)
+        painter.setBrush(QColor("#1e161f"))
+        painter.drawPath(path)
+        super().paintEvent(event)
 
 
 if __name__ == "__main__":

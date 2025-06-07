@@ -1,6 +1,6 @@
 #Sidebar {
-    background-color: #1e1f3d;
-    border-right: 1px solid #2e2f4f;
+    background-color: #1e161f;
+    border-right: 1px solid #3f3f3f;
 }
 
 #SidebarButton {
@@ -10,61 +10,63 @@
 }
 
 #SidebarButton:hover {
-    background-color: #2e2f4f;
+    background-color: #3f3f3f;
     border-radius: 8px;
 }
 
 #SidebarTopButton {
-    background-color: #7692ff;
+    background-color: #8d10a1;
     border: none;
     padding: 8px 12px;
     font-weight: bold;
     border-radius: 4px;
+    color: #d09dd6;
 }
 
 #SidebarTopButton:hover {
-    background-color: #ABD2FA;
+    background-color: #a953b6;
 }
 
 #SidebarLabel {
-    background-color: white;
-    color: black;
+    background-color: #121212;
+    color: #d09dd6;
     margin: 10px 5px;
     padding: 10px;
     border-radius: 6px;
-    border: 1px solid #cccccc;
+    border: 1px solid #3f3f3f;
 }
 
 #PreviewPanel {
-    background-color: #f6f7fb;
+    background-color: #000000;
 }
 
 #RightPanel {
-    background-color: #1e1f3d;
+    background-color: #1e161f;
 }
 
 #BottomOverlay {
-    background-color: rgba(255, 255, 255, 0.95);
-    border: 1px solid #cccccc;
+    background-color: rgba(18, 18, 18, 0.95);
+    border: 1px solid #3f3f3f;
     border-radius: 12px;
 }
 
 #OverlayButton {
-    background-color: #7692ff;
+    background-color: #8d10a1;
     border: none;
     border-radius: 6px;
     padding: 10px 16px;
     font-weight: bold;
+    color: #d09dd6;
 }
 
 #OverlayButton:hover {
-    background-color: #abd2fa;
+    background-color: #a953b6;
 }
 
 #FilenameLabel {
     background-color: transparent;
-    color: black;
-    border: 1px solid #aabfc4;
+    color: #d09dd6;
+    border: 1px solid #575757;
     border-radius: 4px;
     padding: 4px 8px;
     margin-left: 5px;
@@ -72,15 +74,29 @@
 }
 
 #SidebarFilenames {
-    background-color: #1e1f3d;
+    background-color: #1e161f;
     border: none;
 }
 
 #right_scroll_content{
-    background-color: #f6f7fb;
+    background-color: #121212;
 }
 
 QScrollArea {
     background: transparent;
     border: none;
+}
+
+#SidebarFileList {
+    background-color: #1e161f;
+    color: #ffffff;
+    border: none;
+    selection-background-color: #3f3f3f;
+    selection-color: #d09dd6;
+}
+
+#CustomTitleBar {
+    background-color: #1e161f;
+    border-top-left-radius: 16px;
+    border-top-right-radius: 16px;
 }
