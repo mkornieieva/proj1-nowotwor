@@ -20,7 +20,7 @@ class CustomTitleBar(QWidget):
         layout.setContentsMargins(10, 0, 10, 0)
         layout.setSpacing(8)
 
-        self.title = QLabel("Styled Dashboard", self)
+        self.title = QLabel("Równowaga - app", self)
         self.title.setStyleSheet("color: #d09dd6; font-weight: bold;")
         layout.addWidget(self.title)
         layout.addStretch()
@@ -79,9 +79,9 @@ class MainWindow(QMainWindow):
         self.setMinimumSize(1280, 720)
         self.setWindowFlag(Qt.FramelessWindowHint)
         self.setAttribute(Qt.WA_TranslucentBackground)
+        self.image_paths = []
         self.init_ui()
         self.current_image_index = -1
-        self.image_paths = []
         self.right_thumbnails = []
         self.current_pixmap = QPixmap()
         self.zoom_level = 1.0
@@ -89,7 +89,15 @@ class MainWindow(QMainWindow):
         self.boxes_by_path = {}
         self.show_boxes = True
         self.setWindowFlag(Qt.FramelessWindowHint)
-
+        self._resizing = False
+        self._resize_dir = None
+        self.setMouseTracking(True)
+        self.centralWidget().setMouseTracking(True)
+        self.preview_panel.setMouseTracking(True)
+        self.right_panel.setMouseTracking(True)
+        self.sidebar.setMouseTracking(True)
+        self.main_image_label.setMouseTracking(True)
+        self.detection_performed = False
 
     def eventFilter(self, obj, event):
         if event.type() == QEvent.Wheel and obj in (self.right_scroll_content, self.main_image_label):
@@ -158,16 +166,18 @@ class MainWindow(QMainWindow):
 
         self.image_paths.extend(unique_new_paths)
 
-        # Dodaj tylko nowe miniatury bez czyszczenia
+        # Add only new thumbnails without clearing
         new_thumbnails = display_images_in_panel(
             self.right_scroll_content,
             unique_new_paths,
             on_image_select=self.set_active_image,
-            clear=False  # <== kluczowa zmiana
+            clear=False
         )
         self.right_thumbnails.extend(new_thumbnails)
 
         refresh_file_list_in_sidebar(self)
+        # Refresh patient description after loading images
+        self.load_patient_description()
 
     # function to choose image from list and display it in main preview panel
     def set_active_image(self, index):
@@ -195,6 +205,8 @@ class MainWindow(QMainWindow):
         if not self.image_paths:
             print("Brak obrazów do analizy.")
             return
+
+        self.detection_performed = True
 
         print(f"[AI] Analiza {len(self.image_paths)} obrazów...")
         results = detect_bounding_boxes_batch(self.image_paths)
@@ -271,6 +283,17 @@ class MainWindow(QMainWindow):
         # Przerysuj aktualny obraz
         self.display_scaled_image()
 
+    def load_patient_description(self):
+        txt_path = "pacjent.txt"
+        if self.image_paths:
+            img_dir = os.path.dirname(self.image_paths[0])
+            txt_path = os.path.join(img_dir, "pacjent.txt")
+        try:
+            with open(txt_path, "r", encoding="utf-8") as f:
+                self.sidebar_label.setText(f.read())
+        except Exception as e:
+            self.sidebar_label.setText("Brak opisu dla tego pacjenta.")
+
     # main function to initialize the ui components
     def init_ui(self):
         central_widget = QWidget()
@@ -324,6 +347,7 @@ class MainWindow(QMainWindow):
         self.sidebar_label.setWordWrap(True)
         self.sidebar_label.setMinimumHeight(60)
         self.sidebar_layout.addWidget(self.sidebar_label)
+        self.load_patient_description()
 
         # Scrollable file list
         self.sidebar_file_list = QListWidget()
@@ -401,11 +425,74 @@ class MainWindow(QMainWindow):
 
     # event handlers for mouse and scroll events
     def mousePressEvent(self, event):
+        pos = self.mapFromGlobal(event.globalPosition().toPoint())
+        self._resize_dir = get_resize_direction(self, pos)
+        if event.button() == Qt.LeftButton and self._resize_dir:
+            self._resizing = True
+            self._resize_start_pos = event.globalPosition().toPoint()
+            self._resize_start_geom = self.geometry()
+            return
+        # Otherwise, handle image drag
         self._is_dragging, self._drag_start_pos = handle_mouse_press(event, self.zoom_level)
         if self._is_dragging:
             self.setCursor(Qt.ClosedHandCursor)
 
     def mouseMoveEvent(self, event):
+        if self._resizing and self._resize_dir:
+            diff = event.globalPosition().toPoint() - self._resize_start_pos
+            geom = self._resize_start_geom
+            x, y, w, h = geom.x(), geom.y(), geom.width(), geom.height()
+            min_w, min_h = self.minimumWidth(), self.minimumHeight()
+
+            # Calculate new geometry, but clamp to min size
+            if "left" in self._resize_dir:
+                new_x = x + diff.x()
+                new_w = w - diff.x()
+                if new_w < min_w:
+                    new_x = x + (w - min_w)
+                    new_w = min_w
+                x = new_x
+                w = new_w
+            if "right" in self._resize_dir:
+                new_w = w + diff.x()
+                if new_w < min_w:
+                    new_w = min_w
+                w = new_w
+            if "top" in self._resize_dir:
+                new_y = y + diff.y()
+                new_h = h - diff.y()
+                if new_h < min_h:
+                    new_y = y + (h - min_h)
+                    new_h = min_h
+                y = new_y
+                h = new_h
+            if "bottom" in self._resize_dir:
+                new_h = h + diff.y()
+                if new_h < min_h:
+                    new_h = min_h
+                h = new_h
+
+            self.setGeometry(x, y, w, h)
+            return
+
+        # Change cursor if near edge
+        direction = get_resize_direction(self, self.mapFromGlobal(event.globalPosition().toPoint()))
+        cursors = {
+            "left": Qt.SizeHorCursor,
+            "right": Qt.SizeHorCursor,
+            "top": Qt.SizeVerCursor,
+            "bottom": Qt.SizeVerCursor,
+            "top_left": Qt.SizeFDiagCursor,
+            "top_right": Qt.SizeBDiagCursor,
+            "bottom_left": Qt.SizeBDiagCursor,
+            "bottom_right": Qt.SizeFDiagCursor,
+        }
+        if direction:
+            self.setCursor(cursors.get(direction, Qt.ArrowCursor))
+        else:
+            self.setCursor(Qt.ArrowCursor)
+
+        # Otherwise, handle image drag
         moved, new_start, new_offset = handle_mouse_move(
             event,
             self._is_dragging,
@@ -419,6 +506,10 @@ class MainWindow(QMainWindow):
             self.update_image_position()
 
     def mouseReleaseEvent(self, event):
+        if self._resizing:
+            self._resizing = False
+            self._resize_dir = None
+            return
         self._is_dragging = handle_mouse_release(event)
         self.setCursor(Qt.ArrowCursor)
 
@@ -468,7 +559,6 @@ class MainWindow(QMainWindow):
         if self.current_pixmap.isNull():
             return
 
-        # Bazuj na oryginalnym pixmap
         scaled_size = self.current_pixmap.size() * self.zoom_level
         scaled = self.current_pixmap.scaled(
             scaled_size,
@@ -476,28 +566,44 @@ class MainWindow(QMainWindow):
             Qt.SmoothTransformation
         )
 
-        if self.show_boxes:
-            image_path = self.image_paths[self.current_image_index]
-            boxes = self.boxes_by_path.get(image_path, [])
-            if boxes:
-                boxed = QPixmap(scaled)  # zrób kopię, żeby nie nadpisać oryginału
-                painter = QPainter(boxed)
-                pen = QPen(QColor("red"))
-                pen.setWidth(2)
-                painter.setPen(pen)
+        image_path = self.image_paths[self.current_image_index]
+        boxes = self.boxes_by_path.get(image_path, []) if self.show_boxes else []
 
-                scale_ratio = self.zoom_level
-                for rect in boxes:
-                    scaled_rect = QRectF(
-                        rect.x() * scale_ratio,
-                        rect.y() * scale_ratio,
-                        rect.width() * scale_ratio,
-                        rect.height() * scale_ratio
-                    )
-                    painter.drawRect(scaled_rect)
-
-                painter.end()
-                scaled = boxed  # zamień tylko jeśli rysowaliśmy
+        if self.show_boxes and boxes:
+            boxed = QPixmap(scaled)
+            painter = QPainter(boxed)
+            pen = QPen(QColor("red"))
+            pen.setWidth(2)
+            painter.setPen(pen)
+            scale_ratio = self.zoom_level
+            for rect in boxes:
+                scaled_rect = QRectF(
+                    rect.x() * scale_ratio,
+                    rect.y() * scale_ratio,
+                    rect.width() * scale_ratio,
+                    rect.height() * scale_ratio
+                )
+                painter.drawRect(scaled_rect)
+            painter.end()
+            scaled = boxed
+        elif self.show_boxes and not boxes and self.detection_performed:
+            # Draw "no detection" in the bottom-left
+            boxed = QPixmap(scaled)
+            painter = QPainter(boxed)
+            painter.setPen(QColor("red"))
+            font = painter.font()
+            font.setPointSize(18)
+            painter.setFont(font)
+            margin = 12
+            text = "brak detekcji"
+            metrics = QFontMetrics(font)
+            text_width = metrics.horizontalAdvance(text)
+            text_height = metrics.height()
+            x = margin
+            y = boxed.height() - margin
+            painter.drawText(x, y, text)
+            painter.end()
+            scaled = boxed
 
         self.main_image_label.setPixmap(scaled)
         self.main_image_label.resize(scaled.size())

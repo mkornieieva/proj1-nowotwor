@@ -6,6 +6,24 @@ from PySide6.QtCore import Qt, QPoint
 # Dozwolone rozszerzenia graficzne
 ALLOWED_EXTENSIONS = ('.png', '.jpg', '.jpeg', '.bmp', '.gif', '.webp')
 
+
+RESIZE_MARGIN = 8
+
+def get_resize_direction(widget, pos):
+    rect = widget.rect()
+    x, y, w, h = rect.x(), rect.y(), rect.width(), rect.height()
+    margin = RESIZE_MARGIN
+    directions = []
+    if pos.x() <= x + margin:
+        directions.append("left")
+    elif pos.x() >= x + w - margin:
+        directions.append("right")
+    if pos.y() <= y + margin:
+        directions.append("top")
+    elif pos.y() >= y + h - margin:
+        directions.append("bottom")
+    return "_".join(directions) if directions else None
+
 # pobierz sciezki do obrazow
 def get_image_paths(mode="folder", folder_path=None, parent=None):
     """
