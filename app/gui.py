@@ -11,8 +11,6 @@ from app.export_to_pdf import export_main_panel_to_pdf
 from main_panel import selected_frame
 from side_panel import all_image_frames
 
-
-
 window = Tk()
 window.geometry("1321x700")
 window.configure(bg="#000000")

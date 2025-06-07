@@ -100,7 +100,7 @@ class MainWindow(QMainWindow):
             self.right_scroll_content,
             unique_new_paths,
             on_image_select=self.set_active_image,
-            clear=False
+            clear=False  # <== kluczowa zmiana
         )
         self.right_thumbnails.extend(new_thumbnails)
 
