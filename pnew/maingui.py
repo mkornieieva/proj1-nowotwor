@@ -11,6 +11,40 @@ from PySide6.QtGui import QIcon, QFontMetrics, QPainter, QPageLayout, QPixmap, Q
 from handlers import *
 from detect import detect_bounding_boxes_batch
 
+if sys.platform == "win32":
+    from PySide6.QtCore import QAbstractNativeEventFilter, QPoint
+    import ctypes.wintypes
+
+    HTCAPTION = 2
+    WM_NCHITTEST = 0x84
+
+    class WindowsNativeEventFilter(QAbstractNativeEventFilter):
+        def __init__(self, window):
+            super().__init__()
+            self.window = window
+
+        def nativeEventFilter(self, eventType, message):
+            print("nativeEventFilter called", eventType)
+            if eventType != "windows_generic_MSG":
+                return False, 0
+            msg = ctypes.wintypes.MSG.from_address(message.__int__())
+            if msg.message == WM_NCHITTEST:
+                x = ctypes.c_short(msg.lParam & 0xFFFF).value
+                y = ctypes.c_short((msg.lParam >> 16) & 0xFFFF).value
+                global_pos = QPoint(x, y)
+                title_bar = self.window.title_bar
+                # Map the global position to the title bar's local coordinates
+                local_pos = title_bar.mapFromGlobal(global_pos)
+
+                # Exclude button areas
+                for child in title_bar.children():
+                    if isinstance(child, QWidget) and child.geometry().contains(local_pos):
+                        return False, 0
+
+                if title_bar.rect().contains(local_pos):
+                    return True, HTCAPTION
+            return False, 0
+
 class CustomTitleBar(QWidget):
     def __init__(self, parent):
         super().__init__(parent)
@@ -88,7 +122,6 @@ class MainWindow(QMainWindow):
         self.current_boxes = []
         self.boxes_by_path = {}
         self.show_boxes = True
-        self.setWindowFlag(Qt.FramelessWindowHint)
         self._resizing = False
         self._resize_dir = None
         self.setMouseTracking(True)
@@ -632,5 +665,8 @@ if __name__ == "__main__":
     with open("style.qss", "r") as f:
         app.setStyleSheet(f.read())
     window.show()
+    if sys.platform == "win32":
+        event_filter = WindowsNativeEventFilter(window)
+        app.installNativeEventFilter(event_filter)
     window.resizeEvent(None)
     sys.exit(app.exec())
