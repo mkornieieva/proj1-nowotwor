@@ -1,7 +1,0 @@
-path: C:/Users/USER/Downloads/dataset
-
-train: balanced/images/train
-val:   balanced/images/val
-
-nc: 1
-names: ['tumor']
